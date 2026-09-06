@@ -1,0 +1,208 @@
+<span class="eyebrow">How we work</span>
+<h1>FAQ</h1>
+
+<p class="lede">
+  Common questions, answered plainly. If the answer is longer than a paragraph it lives on its own
+  page and this points at it.
+</p>
+
+<h2>Using it</h2>
+
+<h3>What does Spagitty cost?</h3>
+
+<p>
+  Nothing. It is free software under the GPL-3.0-or-later, with no paid tier, no account and no
+  service behind it. If you run coding agents through the farm, those agents cost whatever they cost —
+  that is between you and their providers.
+</p>
+
+<h3>Which platforms?</h3>
+
+<p>
+  Linux, macOS and Windows. Every release builds all three. The published macOS build is Apple silicon;
+  the draft lane also produces an Intel one. See <a href="install.html">install &amp; first run</a>.
+</p>
+
+<h3>Why does macOS refuse to open it?</h3>
+
+<p>
+  Nothing is code-signed — there is no Apple Developer account in this project. Right-click the app,
+  choose <strong>Open</strong>, then <strong>Open</strong> again in the dialog. On Windows, choose
+  <em>More info → Run anyway</em>. Adding real signing is tracked, not ignored.
+</p>
+
+<h3>Does it need git installed?</h3>
+
+<p>
+  Yes. Reads are answered in-process with <code>gix</code>, but every operation that <em>writes</em>
+  goes through the <code>git</code> binary — deliberately, so hooks, credential helpers, LFS, submodule
+  recursion and the sequencer all behave exactly as they would in a terminal. See
+  <a href="architecture.html#the-git-binary-boundary">the boundary</a>.
+</p>
+
+<h3>Can I open more than one repository?</h3>
+
+<p>
+  There is a tab strip, and tabs can point at linked worktrees as well as repositories. One repository
+  is <em>open</em> at a time in the backend — opening another tears down the previous walk and watcher —
+  but switching between tabs is what you would expect.
+</p>
+
+<h3>Where did my setting go?</h3>
+
+<p>
+  Behaviour toggles, the repository list and connected accounts live in Spagitty's own configuration
+  directory. The theme, the size dials, column layouts and badge records live in the webview's
+  <code>localStorage</code>, keyed by repository path — because they have to be applied on the first
+  frame, before any command could answer. The full table is on
+  <a href="install.html#where-spagitty-keeps-things">install &amp; first run</a>.
+</p>
+
+<h2>Privacy</h2>
+
+<h3>What does Spagitty send?</h3>
+
+<p>
+  Pull request data to the forge you connected, git's own network operations to your remotes, and an
+  update check when you ask for one. That is the complete list, and it is enumerated on
+  <a href="privacy.html">privacy &amp; security</a>.
+</p>
+
+<h3>Is there telemetry?</h3>
+
+<p>
+  No. No analytics, no crash reporting, no usage metrics, no account. There is nowhere for any of it to
+  go — there is no Spagitty server.
+</p>
+
+<h3>Where does my forge token live?</h3>
+
+<p>
+  The OS keychain, and nowhere else. <code>accounts.json</code> holds a host and a login. A token that
+  appears in a clone URL is stripped from the command record <em>before</em> the entry is stored, so it
+  cannot leak through the copy button.
+</p>
+
+<h3>How can I check any of that?</h3>
+
+<p>
+  Two files. Exactly one HTTP client exists in the workspace, declared only in
+  <code>spagitty-core</code> and reachable only from <code>forge/http.rs</code>; and exactly one module
+  spawns a process, <code>shell.rs</code>. Both are asserted by tests. The webview links no HTTP client
+  at all.
+</p>
+
+<h2>The agent farm</h2>
+
+<h3>Does Spagitty include an AI model?</h3>
+
+<p>
+  No. Nothing here performs inference and nothing ships an API key. The farm runs agents you have
+  installed, as you, with your credentials.
+</p>
+
+<h3>Which agents does it support?</h3>
+
+<p>
+  Claude Code, Codex, Cursor and Oh My Pi are detected on <code>PATH</code> out of the box, and anything
+  else with a command line can be added by hand — a configured command with a prompt token, so a new
+  provider is a settings change rather than a release.
+</p>
+
+<h3>Can an agent break my working copy?</h3>
+
+<p>
+  No. Every task runs on its own branch in its own worktree, and nothing an agent does reaches your
+  checkout. Path-level leases stop two agents editing the same file, and deleting a task keeps the
+  commits on its branch.
+</p>
+
+<h3>Can an agent merge its own work?</h3>
+
+<p>
+  Only at the top of the autonomy dial, and even then only with passing checks, a successful review by a
+  <em>different</em> agent of the work actually committed, and merge permission. There is no path in the
+  code from an agent's own report of success to <code>Done</code>.
+</p>
+
+<h3>What if nothing is configured to verify the work?</h3>
+
+<p>
+  The task says so, in those words, when it reaches review. It does not read as verified. “Nothing
+  checked it” is a distinct state from “it passed”.
+</p>
+
+<h3>What if an agent goes quiet?</h3>
+
+<p>
+  After six minutes without a word, the chip and the row say how long it has been silent and the pulse
+  stops. Nothing is killed for you — a model may think for a long time, and killing it throws the work
+  away.
+</p>
+
+<h3>What happens if Spagitty crashes mid-farm?</h3>
+
+<p>
+  The farm is written to disk after every state change, by rename, with an append-only event log. On
+  restart the service reconciles what is on disk against the worktrees that actually exist, and
+  <em>sweep</em> removes what a crashed run left behind.
+</p>
+
+<h2>Comparisons</h2>
+
+<h3>How is this different from the Git client I already use?</h3>
+
+<p>
+  In three ways that matter. It is <strong>local-first with no account</strong>, and the claim is
+  narrow enough to be checked rather than trusted. It treats <strong>agents as first-class actors</strong>
+  — credited separately, ranked by first-pass rate, and now run from inside the client. And it is
+  <strong>meant to be read</strong>: the reasoning behind each decision is in the repository, not in
+  someone's head.
+</p>
+
+<p>
+  What it deliberately does not do is also written down: no dragging commits in the graph, no inline
+  message editing, no manual lane layout, no independent graph zoom.
+</p>
+
+<h3>Is it a GitHub client?</h3>
+
+<p>
+  It is a Git client that can talk to GitHub, GitLab and Bitbucket Cloud when you connect an account. The
+  Pull requests screen is the only screen whose data comes off the network; everything else reads the
+  disk, and Spagitty works fully offline without any account at all.
+</p>
+
+<h3>Is the farm a CI system?</h3>
+
+<p>
+  No. Verification runs your repository's commands locally, in a task's worktree, as a gate before a
+  merge. It is not a pipeline, it does not run on push, and it replaces nothing you already have.
+</p>
+
+<h2>Contributing and licensing</h2>
+
+<h3>Can I use Spagitty commercially?</h3>
+
+<p>
+  Yes, within the terms of the GPL-3.0-or-later. If you distribute a modified version, the licence
+  requires you to make the corresponding source available under the same terms. The About section
+  carries the exact commit a build came from, for exactly that reason.
+</p>
+
+<h3>How do I contribute?</h3>
+
+<p>
+  Start with <a href="contributing.html">contributing</a>. In short: sign off your commits, name your
+  branch after a work item, update the docs your change affects in the same commit, add a changelog
+  entry, and clear gates 1 to 3 locally.
+</p>
+
+<h3>Where do I report a bug?</h3>
+
+<p>
+  <a href="https://github.com/spa-git-ty/spagitty/issues" rel="noopener">The issue tracker</a>. Say which
+  screen (by its code, if you know it), your platform and version from <em>Settings → License</em>, and —
+  if a git operation is involved — what the command drawer recorded, since that shows the actual argv
+  rather than a reconstruction.
+</p>

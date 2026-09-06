@@ -1,0 +1,264 @@
+<span class="eyebrow">How it is built</span>
+<h1>IPC reference</h1>
+
+<p class="lede">
+  Every Tauri command and every event that crosses between the webview and the backend. All of them
+  are reached from exactly one module on the frontend — <code>src/lib/api.ts</code>, plus
+  <code>src/lib/farm/api.ts</code> for the farm — so a rename here is a one-file change there.
+</p>
+
+<div class="note">
+  <span class="note-label">Conventions</span>
+  <p>
+    Types crossing the boundary derive <code>Serialize</code> with
+    <code>#[serde(rename_all = "camelCase")]</code> and are mirrored by hand in
+    <code>src/lib/types.ts</code>. Errors cross as plain strings — <code>Error</code>'s
+    <code>Display</code> text is user-facing, and screens show it directly rather than substituting a
+    message of their own.
+  </p>
+</div>
+
+<h2>The session and the walk</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>open_repo</code></th><td>Opens a repository, builds the ref index, computes the cheap counts, spawns a graph worker and a watcher. Returns <code>{ info, counts, token }</code>.</td></tr>
+    <tr><th><code>close_repo</code></th><td>Tears down the walk and the watcher.</td></tr>
+    <tr><th><code>graph_request</code></th><td>Asks the worker for the next <em>n</em> rows. The worker walks nothing until asked.</td></tr>
+    <tr><th><code>graph_restart</code></th><td>Starts a fresh walk. The old one's rows are dropped by token rather than cancelled.</td></tr>
+    <tr><th><code>graph_visibility</code></th><td>Hide, solo, smart visibility and pin-to-left — resolved to a <em>root set</em> for a fresh walk, never a client-side filter.</td></tr>
+    <tr><th><code>snapshot</code></th><td>The repository's current state in one read: HEAD, counts, freshness.</td></tr>
+    <tr><th><code>metrics</code></th><td>The Rust side's structural constants, fetched at boot so the two copies of the row pitch can be compared.</td></tr>
+    <tr><th><code>launch_path</code></th><td>The path the binary was started with, if any.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Reading</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>commit_detail</code></th><td>The message and the people for one commit.</td></tr>
+    <tr><th><code>commit_diff</code></th><td>A commit's file list and totals — step one of the Diff screen's two-step load.</td></tr>
+    <tr><th><code>file_diff</code></th><td>One file's hunks, fetched as it is selected and cached by path.</td></tr>
+    <tr><th><code>binary_file_diff</code></th><td>A size delta and a MIME type, for a file that has no lines.</td></tr>
+    <tr><th><code>working_copy</code></th><td>The status walk: staged, unstaged, untracked.</td></tr>
+    <tr><th><code>working_diff</code> · <code>binary_working_diff</code></th><td>The same two, for uncommitted work.</td></tr>
+    <tr><th><code>head_message</code></th><td>The current HEAD's message — what an amend starts from.</td></tr>
+    <tr><th><code>branches</code></th><td>Every branch with its drift, upstream and merged state.</td></tr>
+    <tr><th><code>stashes</code></th><td>The stash list, read from <code>refs/stash</code>'s reflog.</td></tr>
+    <tr><th><code>blame</code></th><td>Line attribution for a file. The one read that goes through the <code>git</code> binary.</td></tr>
+    <tr><th><code>file_history</code></th><td>A file's commits, following renames.</td></tr>
+    <tr><th><code>conflicts</code> · <code>conflict_sides</code> · <code>conflict_regions</code></th><td>What is conflicted, the three index stages of one path, and the marker regions inside it.</td></tr>
+    <tr><th><code>reflog</code> · <code>reflog_refs</code></th><td>Where a ref has been, and which refs have a reflog at all.</td></tr>
+    <tr><th><code>tags</code></th><td>Annotated and lightweight, told apart.</td></tr>
+    <tr><th><code>worktrees</code> · <code>submodules</code></th><td>The linked working trees, and the submodules with their status.</td></tr>
+    <tr><th><code>remotes</code></th><td>The remotes this repository knows about.</td></tr>
+    <tr><th><code>search_start</code> · <code>search_stop</code></th><td>Start a filtered walk on its own thread; starting one cancels the one before.</td></tr>
+    <tr><th><code>external_tools_config</code></th><td>Which diff and merge tools are installed, and what git is configured to use.</td></tr>
+    <tr><th><code>recent_repos</code></th><td>The repositories the user has opened. Nothing scans the filesystem.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Writing</h2>
+
+<h3>The working copy</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>stage</code> · <code>unstage</code></th><td>By path.</td></tr>
+    <tr><th><code>stage_hunk</code> · <code>unstage_hunk</code></th><td>By hunk, through a generated patch.</td></tr>
+    <tr><th><code>discard</code> · <code>discard_hunk</code></th><td>The only writes here that can lose work, and the only ones behind a confirmation.</td></tr>
+    <tr><th><code>commit</code></th><td>Commits the index, through <code>git</code>, so hooks and signing behave exactly as they would in a terminal.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>History</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>reset</code></th><td>Soft, mixed or hard — named by effect at the call site rather than by flag.</td></tr>
+    <tr><th><code>revert</code> · <code>cherry_pick</code></th><td>Single or over a selection.</td></tr>
+    <tr><th><code>integrate</code></th><td>Merge, rebase or fast-forward as one verb with a mode, which is what the drag gesture on the graph produces.</td></tr>
+    <tr><th><code>rebase_onto</code></th><td>A branch onto another.</td></tr>
+    <tr><th><code>rebase_todo</code> · <code>rebase_preview</code></th><td>The generated plan, and the fold of it. Neither starts anything.</td></tr>
+    <tr><th><code>rebase_run</code> · <code>rebase_progress</code></th><td>Execution on a worker, with progress read from git's state counters.</td></tr>
+    <tr><th><code>rebase_continue</code> · <code>rebase_skip</code> · <code>rebase_abort</code></th><td>The three ways out of a stopped rebase.</td></tr>
+    <tr><th><code>checkout</code> · <code>checkout_detached</code></th><td>Through <code>git switch</code> for a branch, which only ever changes branch.</td></tr>
+    <tr><th><code>create_branch</code> · <code>rename_branch</code> · <code>delete_branch</code></th><td>Names validated by git, not by a second implementation of <code>check-ref-format</code>.</td></tr>
+    <tr><th><code>create_tag</code> · <code>delete_tag</code></th><td>From the graph's context menu.</td></tr>
+    <tr><th><code>tag_create</code> · <code>tag_delete</code> · <code>tag_retag</code></th><td>From the Tags screen, which also rewrites an annotated message.</td></tr>
+    <tr><th><code>stash_push</code> · <code>stash_action</code></th><td>Push, and then pop / apply / drop as one action with a mode.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Conflicts</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>conflict_take</code></th><td>Take a whole side.</td></tr>
+    <tr><th><code>conflict_resolve_region</code></th><td>Take one marker region.</td></tr>
+    <tr><th><code>conflict_write</code></th><td>Write what was typed into the merged pane.</td></tr>
+    <tr><th><code>conflict_resolve</code></th><td>Mark a path resolved — an explicit <code>git add</code>, so the index says what the screen says.</td></tr>
+    <tr><th><code>conflict_continue</code> · <code>conflict_abort</code></th><td>The two ways out of the operation itself.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Remotes, worktrees, submodules, tools</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Commands</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>remote_add</code> · <code>remote_rename</code> · <code>remote_remove</code> · <code>remote_set_url</code></th><td>Each through <code>git remote</code> rather than a config edit, so git's own bookkeeping stays correct.</td></tr>
+    <tr><th><code>worktree_add</code> · <code>worktree_remove</code> · <code>worktree_lock</code> · <code>worktree_unlock</code> · <code>worktree_prune</code></th><td>The linked working tree lifecycle.</td></tr>
+    <tr><th><code>submodule_update</code> · <code>submodule_sync</code> · <code>submodule_deinit</code></th><td>Recursive init and update, URL sync, and deinit.</td></tr>
+    <tr><th><code>set_external_tool</code> · <code>launch_external_diff</code> · <code>launch_external_merge</code></th><td>Writes git's own <code>diff.tool</code> / <code>merge.tool</code>, and launches them.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Network</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>fetch</code> · <code>push</code> · <code>pull</code></th><td>On a worker, watched while they run. <code>network_release</code> tears one down.</td></tr>
+    <tr><th><code>clone_plan</code></th><td>Where a URL and a folder say the clone will land, and everything wrong with that — computed as the user types, without the network.</td></tr>
+    <tr><th><code>clone_start</code> · <code>clone_release</code></th><td>The one spawn that does not wait. Cancelling removes only what the clone created.</td></tr>
+    <tr><th><code>check_update</code></th><td>Whether there is a newer Spagitty. A check, not an updater.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>The forge</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>forge_repo</code></th><td>Which host, owner and repository the open repository belongs to.</td></tr>
+    <tr><th><code>forge_accounts</code> · <code>forge_connect</code> · <code>forge_disconnect</code></th><td>Connected accounts. The token goes to the OS keychain; only a host and a login are stored.</td></tr>
+    <tr><th><code>pull_requests</code></th><td>The list — one GraphQL request per refresh.</td></tr>
+    <tr><th><code>create_pull_request</code></th><td>Opens one from the current branch.</td></tr>
+    <tr><th><code>pull_request_files</code> · <code>pull_request_commits</code> · <code>commit_files</code></th><td>The review workspace's three lists.</td></tr>
+    <tr><th><code>pull_request_comments</code> · <code>reply_comment</code></th><td>Inline threads, and replying into one.</td></tr>
+    <tr><th><code>submit_review</code></th><td>Publishes a review — approve, request changes or comment — with local drafts batched into one submission.</td></tr>
+    <tr><th><code>merge_pull_request</code></th><td>Merge, squash or rebase.</td></tr>
+    <tr><th><code>close_pull_request</code> · <code>set_pr_draft</code></th><td>Close and reopen; mark ready or back to draft.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Application state</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Command</th><th>Does</th></tr></thead>
+  <tbody>
+    <tr><th><code>forget_repo</code></th><td>Removes a row from the repository list. Never the directory.</td></tr>
+    <tr><th><code>about</code> · <code>licenses</code></th><td>Build identity, and the dependency licence list generated at build time.</td></tr>
+    <tr><th><code>identity</code> · <code>set_identity</code></th><td>Read per scope with <code>gix</code>, written with <code>git config</code>. Clearing unsets the key.</td></tr>
+    <tr><th><code>identity_profiles</code> · <code>save_identity_profile</code> · <code>delete_identity_profile</code> · <code>apply_identity_profile</code></th><td>Named profiles for name, email and signing key.</td></tr>
+    <tr><th><code>signing</code> · <code>set_signing</code> · <code>clear_signing</code></th><td>What git would actually do. <code>commit.gpgsign</code> is the authority.</td></tr>
+    <tr><th><code>settings</code> · <code>set_settings</code></th><td>Spagitty's own behaviour toggles, read by the shell on start rather than only by the Settings screen.</td></tr>
+    <tr><th><code>git_commands</code> · <code>clear_git_commands</code></th><td>The catch-up read for what was executed before the drawer was opened, and a way to empty it.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="the-farm">The farm</h2>
+
+<p>All of these are <code>async</code> commands, because they take locks that agent threads hold.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Group</th><th>Commands</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>Lifecycle</th>
+      <td><code>farm_open</code>, <code>farm_close</code>, <code>farm_create</code>,
+      <code>farm_configure</code>, <code>farm_start</code>, <code>farm_pause</code>,
+      <code>farm_cancel</code></td>
+    </tr>
+    <tr>
+      <th>State</th>
+      <td><code>farm_snapshot</code>, <code>farm_events</code>, <code>farm_stale</code>,
+      <code>farm_task_detail</code>, <code>farm_transcript</code></td>
+    </tr>
+    <tr>
+      <th>Agents</th>
+      <td><code>farm_detect_agents</code>, <code>farm_save_agent</code>,
+      <code>farm_remove_agent</code></td>
+    </tr>
+    <tr>
+      <th>Planning</th>
+      <td><code>farm_plan</code>, <code>farm_cancel_plan</code>, <code>farm_decompose</code>,
+      <code>farm_ready_task</code>, <code>farm_ready_tasks</code>, <code>farm_discard_tasks</code></td>
+    </tr>
+    <tr>
+      <th>Tasks</th>
+      <td><code>farm_add_task</code>, <code>farm_edit_task</code>, <code>farm_delete_task</code>,
+      <code>farm_assign_task</code>, <code>farm_run_task</code>, <code>farm_cancel_task</code>,
+      <code>farm_retry_task</code></td>
+    </tr>
+    <tr>
+      <th>The gate</th>
+      <td><code>farm_verify_task</code>, <code>farm_review_task</code>,
+      <code>farm_merge_task</code></td>
+    </tr>
+    <tr>
+      <th>Housekeeping</th>
+      <td><code>farm_write_policy</code> (writes a starter <code>AGENTS.md</code>),
+      <code>farm_sweep</code> (removes what a crashed farm left behind)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Events</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Event</th><th>Carries</th></tr></thead>
+  <tbody>
+    <tr><th><code>graph-rows</code></th><td>A batch of commit rows, stamped with its walk's token. Rows carrying a stale token are dropped.</td></tr>
+    <tr><th><code>graph-done</code></th><td>The walk reached the end.</td></tr>
+    <tr><th><code>search-rows</code></th><td>Matches, as the filtered walk finds them, with a query token.</td></tr>
+    <tr><th><code>search-done</code></th><td>That query finished.</td></tr>
+    <tr><th><code>clone-progress</code></th><td>Git's own progress, parsed. An unrecognised line is still shown.</td></tr>
+    <tr><th><code>clone-done</code></th><td>The outcome, including a failure's message read from stderr.</td></tr>
+    <tr><th><code>network-progress</code> · <code>network-done</code></th><td>A fetch or push while it runs, and its result.</td></tr>
+    <tr><th><code>rebase-progress</code> · <code>rebase-done</code></th><td>Read from git's state counters rather than parsed from output.</td></tr>
+    <tr><th><code>repo-changed</code></th><td>The watcher saw something. Refs moving debounces into a re-read and a re-walk; a worktree change re-reads the counts only.</td></tr>
+    <tr><th><code>git-command</code></th><td>One execution as <code>shell.rs</code> recorded it — argv, outcome, exit code, duration, with any URL userinfo already stripped.</td></tr>
+    <tr><th><code>farm-event</code></th><td>One <code>FarmEvent</code>, internally tagged and timestamped. Sixteen variants on one channel, because the screen keeps one activity list and one ordering.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The <code>FarmEvent</code> variants</h3>
+
+<p>
+  <code>FarmStatusChanged</code>, <code>TaskCreated</code>, <code>TaskStatusChanged</code>,
+  <code>TaskAssigned</code>, <code>TaskProposed</code>, <code>AgentStarted</code>,
+  <code>AgentOutput</code>, <code>AgentStopped</code>, <code>VerificationStarted</code>,
+  <code>VerificationFinished</code>, <code>ReviewRequested</code>, <code>ReviewCompleted</code>,
+  <code>MergeRequested</code>, <code>MergeCompleted</code>, <code>WorkspaceChanged</code>,
+  <code>Failed</code>.
+</p>

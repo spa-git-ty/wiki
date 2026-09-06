@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Map · Spagitty Wiki</title>
+<meta name="description" content="Every directory and module in the Spagitty workspace, what it holds, and where to start reading.">
+<meta name="keywords" content="code map, source tree, module reference, rust crates, svelte stores">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/code-map.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="Code Map · Spagitty Wiki">
+<meta property="og:description" content="Every directory and module in the Spagitty workspace, what it holds, and where to start reading.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/code-map.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Code Map · Spagitty Wiki">
+<meta name="twitter:description" content="Every directory and module in the Spagitty workspace, what it holds, and where to start reading.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "Code Map", "description": "Every directory and module in the Spagitty workspace, what it holds, and where to start reading.", "url": "https://spa-git-ty.github.io/wiki/code-map.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "Code map", "item": "https://spa-git-ty.github.io/wiki/code-map.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li class="here"><a href="code-map.html" aria-current="page">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-tree">The tree</a></li>
+<li><a href="#by-the-numbers">By the numbers</a></li>
+<li><a href="#where-to-start-reading">Where to start reading</a></li>
+<li><a href="#cratesspagitty-core-git">crates/spagitty-core — git</a></li>
+<li><a href="#cratesspagitty-farm-agents">crates/spagitty-farm — agents</a></li>
+<li><a href="#src-tauri-the-shell">src-tauri — the shell</a></li>
+<li><a href="#src-the-interface">src — the interface</a></li>
+<li><a href="#everything-else">Everything else</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How it is built</span>
+<h1>Code map</h1>
+
+<p class="lede">
+  Every directory in the Spagitty workspace, what it holds, and where to start reading. The detail
+  pages for each layer follow: <a href="core-crate.html">spagitty-core</a>,
+  <a href="farm-crate.html">spagitty-farm</a>, <a href="tauri-layer.html">the Tauri layer</a> and
+  <a href="frontend.html">the frontend</a>.
+</p>
+
+<h2 id="the-tree">The tree<a class="anchor" href="#the-tree" aria-label="Link to this section">#</a></h2>
+
+<pre><code>spagitty/
+├── src/                     SvelteKit SPA — the interface
+│   ├── lib/                 one directory per screen, plus the shared kit
+│   ├── routes/              the screens' shells; logic lives in lib/
+│   ├── testing/             mount helpers and reactive store stand-ins
+│   ├── app.css              boot palette and type scale — the first frame
+│   └── app.html             the document shell
+├── src-tauri/               the Tauri shell — window, commands, workers
+│   ├── src/                 one file per concern, no git logic
+│   ├── capabilities/        Tauri permissions
+│   ├── icons/               generated app icons, all platforms
+│   ├── licenses.rs          the dependency licence list, generated at build time
+│   └── tauri.conf.json      window, bundle, CSP
+├── crates/
+│   ├── spagitty-core/       every git operation
+│   └── spagitty-farm/       the agent farm's control plane
+├── agile/                   the working record: items, plans, test sweeps
+├── docs/                    architecture, screens, testing, CI, branding
+├── assets/brand/            the mark, wordmark, lockups, favicons, font
+├── tools/                   brand generators, release notes, record tests
+└── .github/workflows/       the gates and the three release lanes</code></pre>
+
+<h2 id="by-the-numbers">By the numbers<a class="anchor" href="#by-the-numbers" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Part</th><th>Files</th><th>Roughly</th></tr></thead>
+  <tbody>
+    <tr><th>Rust</th><td>101 modules across two crates and the Tauri shell</td><td>~40,000 lines, tests included</td></tr>
+    <tr><th>Svelte components</th><td>96</td><td>the screens and the shared kit</td></tr>
+    <tr><th>TypeScript modules</th><td>88 (excluding tests)</td><td>stores, pure logic, the API surface</td></tr>
+    <tr><th>Frontend test files</th><td>122</td><td>run under happy-dom via vitest</td></tr>
+    <tr><th>Work items</th><td>136, each with a plan and a test sweep</td><td>under <code>agile/</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="where-to-start-reading">Where to start reading<a class="anchor" href="#where-to-start-reading" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>If you want to understand…</th><th>Read, in this order</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>How a screen gets its data</th>
+      <td><code>src/lib/&lt;screen&gt;/store.svelte.ts</code> → <code>src/lib/api.ts</code> →
+      <code>src-tauri/src/commands.rs</code> → the core module it forwards to</td>
+    </tr>
+    <tr>
+      <th>How git is actually performed</th>
+      <td><code>crates/spagitty-core/src/lib.rs</code> → <code>shell.rs</code>'s header (the boundary
+      table) → the module for the operation</td>
+    </tr>
+    <tr>
+      <th>How the graph is drawn</th>
+      <td><code>crates/spagitty-core/src/graph.rs</code> → <code>src/lib/graph/store.svelte.ts</code>
+      → <code>lanes.ts</code> → <code>LaneCanvas.svelte</code></td>
+    </tr>
+    <tr>
+      <th>How the farm decides anything</th>
+      <td><code>crates/spagitty-farm/src/lib.rs</code> → <code>model/</code> →
+      <code>orchestrator/scheduler.rs</code> (a pure function) → <code>service.rs</code></td>
+    </tr>
+    <tr>
+      <th>Why a decision was made</th>
+      <td>The module's own header comment first — they carry the reasoning — then the work item under
+      <code>agile/items/</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="cratesspagitty-core-git"><code>crates/spagitty-core</code> — git<a class="anchor" href="#cratesspagitty-core-git" aria-label="Link to this section">#</a></h2>
+
+<p>
+  No Tauri types, no window handles, no events. It compiles and is tested without a GUI, and its
+  examples run it from a terminal. Full detail: <a href="core-crate.html">spagitty-core</a>.
+</p>
+
+<ul class="modules">
+  <li><span class="m-path">repo.rs</span><span class="m-what">Opening a repository, describing it, reading HEAD.</span></li>
+  <li><span class="m-path">graph.rs</span><span class="m-what">The log walk, lane assignment, lane colours, edges, the row pitch.</span></li>
+  <li><span class="m-path">refs.rs</span><span class="m-what">The ref index — commit id to the refs pointing at it, built once per refresh.</span></li>
+  <li><span class="m-path">branches.rs</span><span class="m-what">Branch rows: drift, upstream, merged; checkout and create.</span></li>
+  <li><span class="m-path">diff.rs</span><span class="m-what">Commit detail, per-commit file lists, per-file hunks — three levels, because they cost different amounts.</span></li>
+  <li><span class="m-path">conflicts.rs</span><span class="m-what">Index stages 1/2/3 of a conflicted path, and what operation is in progress.</span></li>
+  <li><span class="m-path">rebase.rs</span><span class="m-what">The interactive-rebase todo list, its preview, and its execution.</span></li>
+  <li><span class="m-path">ops.rs</span><span class="m-what">Every git operation that writes — thin, <em>named</em> wrappers over <code>shell</code>.</span></li>
+  <li><span class="m-path">shell.rs</span><span class="m-what">The one place a <code>git</code> subprocess is spawned. Its header carries the boundary table.</span></li>
+  <li><span class="m-path">search.rs</span><span class="m-what">The filtered history walk behind Log search.</span></li>
+  <li><span class="m-path">blame.rs</span><span class="m-what">Who last touched each line — the one read that goes through <code>git</code>.</span></li>
+  <li><span class="m-path">stash.rs</span><span class="m-what">Stash entries, read from the reflog of <code>refs/stash</code>.</span></li>
+  <li><span class="m-path">status.rs</span><span class="m-what">The working-copy status walk, and the counts the nav rail shows.</span></li>
+  <li><span class="m-path">work.rs</span><span class="m-what">Changing the working copy: stage, unstage, commit.</span></li>
+  <li><span class="m-path">identity.rs</span><span class="m-what"><code>user.name</code> and <code>user.email</code> per scope — read with <code>gix</code>, written with <code>git config</code>.</span></li>
+  <li><span class="m-path">signing.rs</span><span class="m-what">Whether git will sign this commit and whether it can.</span></li>
+  <li><span class="m-path">clone.rs</span><span class="m-what">Where a clone will land, what is wrong with that, and what git's progress output means.</span></li>
+  <li><span class="m-path">remotes.rs</span><span class="m-what">Add, rename, remove, retarget — each through <code>git remote</code> rather than a config edit.</span></li>
+  <li><span class="m-path">reflog.rs</span><span class="m-what">Where a ref has been, and the three ways back to a point in it.</span></li>
+  <li><span class="m-path">tags.rs</span><span class="m-what">Annotated and lightweight told apart, because the difference decides whether a message can exist.</span></li>
+  <li><span class="m-path">worktrees.rs</span><span class="m-what">List, add, remove, lock, unlock, prune — parsed from git's <code>--porcelain</code> stream.</span></li>
+  <li><span class="m-path">submodules.rs</span><span class="m-what">Status, recursive init and update, URL sync, deinit.</span></li>
+  <li><span class="m-path">tools.rs</span><span class="m-what">External diff and merge tools: discovery on <code>PATH</code>, and git's own <code>diff.tool</code> / <code>merge.tool</code> keys.</span></li>
+  <li><span class="m-path">record.rs</span><span class="m-what">What Spagitty actually ran — the buffer behind the command drawer, written by <code>shell.rs</code>.</span></li>
+  <li><span class="m-path">update.rs</span><span class="m-what">Whether there is a newer Spagitty than this one.</span></li>
+  <li><span class="m-path">forge/</span><span class="m-what">The only part of the workspace that reaches a network. Six files, one of which may hold the client.</span></li>
+  <li><span class="m-path">error.rs</span><span class="m-what"><code>Error</code>, whose <code>Display</code> text is user-facing.</span></li>
+  <li><span class="m-path">fixture.rs</span><span class="m-what">Real repositories for tests, behind the <code>fixture</code> feature. Excluded from coverage.</span></li>
+</ul>
+
+<h2 id="cratesspagitty-farm-agents"><code>crates/spagitty-farm</code> — agents<a class="anchor" href="#cratesspagitty-farm-agents" aria-label="Link to this section">#</a></h2>
+
+<p>Full detail: <a href="farm-crate.html">spagitty-farm</a>.</p>
+
+<ul class="modules">
+  <li><span class="m-path">model/</span><span class="m-what"><code>Farm</code>, <code>Goal</code>, <code>Task</code>, <code>AgentDefinition</code>, <code>AgentRun</code>, <code>Handoff</code>, <code>FarmEvent</code> — the data, and the status machine no path may skip.</span></li>
+  <li><span class="m-path">agent/</span><span class="m-what">One adapter per provider, detection on <code>PATH</code>, and the per-repository registry.</span></li>
+  <li><span class="m-path">workspace/</span><span class="m-what">A branch and a worktree per task, the leases that stop two agents touching one path, and the sweep for what is left behind.</span></li>
+  <li><span class="m-path">execution/</span><span class="m-what">Starting an agent, reading it, stopping its whole process group; the transcript on disk; the narrator.</span></li>
+  <li><span class="m-path">orchestrator/</span><span class="m-what">The dependency graph, the scheduler (a pure function), the router, and the planner.</span></li>
+  <li><span class="m-path">verification/</span><span class="m-what">The repository's own commands, run in the task's worktree.</span></li>
+  <li><span class="m-path">review/</span><span class="m-what">A second agent reading the first one's change, and the decision it returns.</span></li>
+  <li><span class="m-path">persistence/</span><span class="m-what">The farm on disk: JSON under <code>.spagitty/</code>, written by rename, events appended one object per line.</span></li>
+  <li><span class="m-path">policy.rs</span><span class="m-what">The repository's <code>AGENTS.md</code> and its neighbours, attached to every prompt.</span></li>
+  <li><span class="m-path">context.rs</span><span class="m-what">What an agent is told, and the rule that decides it.</span></li>
+  <li><span class="m-path">service.rs</span><span class="m-what">The API, and the only module that changes anything.</span></li>
+</ul>
+
+<h2 id="src-tauri-the-shell"><code>src-tauri</code> — the shell<a class="anchor" href="#src-tauri-the-shell" aria-label="Link to this section">#</a></h2>
+
+<p>Deliberately thin. Full detail: <a href="tauri-layer.html">the Tauri layer</a>.</p>
+
+<ul class="modules">
+  <li><span class="m-path">commands.rs</span><span class="m-what">One <code>#[tauri::command]</code> per operation. No git logic.</span></li>
+  <li><span class="m-path">farm.rs</span><span class="m-what">The farm's commands and its event bridge, with a lifetime of its own.</span></li>
+  <li><span class="m-path">graph_worker.rs</span><span class="m-what">A thread that walks history and emits batches.</span></li>
+  <li><span class="m-path">search_worker.rs</span><span class="m-what">A thread per query; starting one cancels the one before.</span></li>
+  <li><span class="m-path">clone_worker.rs</span><span class="m-what">A thread per clone; it owns the <code>git</code> process, so cancelling is a signal rather than a request.</span></li>
+  <li><span class="m-path">network_worker.rs</span><span class="m-what">Fetch and push, watched while they run.</span></li>
+  <li><span class="m-path">rebase_worker.rs</span><span class="m-what">One thread, watching git rewrite history.</span></li>
+  <li><span class="m-path">watch.rs</span><span class="m-what">Filesystem watcher over the git directory. Spagitty does not poll.</span></li>
+  <li><span class="m-path">command_log.rs</span><span class="m-what">Forwards each recorded execution to the webview as an event.</span></li>
+  <li><span class="m-path">recents.rs</span><span class="m-what">The repositories the user has opened — application state, not git state.</span></li>
+  <li><span class="m-path">settings.rs</span><span class="m-what">Spagitty's own behaviour toggles, stored beside the repository list.</span></li>
+  <li><span class="m-path">accounts.rs</span><span class="m-what">Which hosting accounts are connected. A host and a login; the token is elsewhere.</span></li>
+  <li><span class="m-path">profiles.rs</span><span class="m-what">Named identity profiles.</span></li>
+  <li><span class="m-path">about.rs</span><span class="m-what">Build identity, and the dependency licence list generated at build time.</span></li>
+  <li><span class="m-path">platform.rs</span><span class="m-what">Host facts that must be true before the webview starts.</span></li>
+  <li><span class="m-path">testing.rs</span><span class="m-what">Scaffolding for this crate's own tests — a mock app, an event collector, a deadline on a drop.</span></li>
+  <li><span class="m-path">lib.rs</span><span class="m-what">Command registration.</span></li>
+</ul>
+
+<h2 id="src-the-interface"><code>src</code> — the interface<a class="anchor" href="#src-the-interface" aria-label="Link to this section">#</a></h2>
+
+<p>Full detail: <a href="frontend.html">the frontend</a>.</p>
+
+<h3 id="shared-at-the-top-of-srclib">Shared, at the top of <code>src/lib/</code><a class="anchor" href="#shared-at-the-top-of-srclib" aria-label="Link to this section">#</a></h3>
+
+<ul class="modules">
+  <li><span class="m-path">api.ts</span><span class="m-what">The only module that calls <code>invoke</code>.</span></li>
+  <li><span class="m-path">types.ts</span><span class="m-what">The wire types, mirroring the Rust <code>serde</code> shapes by hand.</span></li>
+  <li><span class="m-path">metrics.ts</span><span class="m-what">Structural numbers, published as CSS custom properties. The single source of truth.</span></li>
+  <li><span class="m-path">nav.ts</span><span class="m-what">The rail: screen codes, order, labels, counts.</span></li>
+  <li><span class="m-path">repo.svelte.ts</span><span class="m-what">The open repository — which one, what HEAD is, and the rail counts.</span></li>
+  <li><span class="m-path">workspace.svelte.ts</span><span class="m-what">Repository tabs, including tabs onto linked worktrees.</span></li>
+  <li><span class="m-path">session.ts</span><span class="m-what">What a launch resumes, as a sequence a test can watch.</span></li>
+  <li><span class="m-path">themes.ts · theme.svelte.ts</span><span class="m-what">The palettes as data, and which one is on.</span></li>
+  <li><span class="m-path">scale.svelte.ts</span><span class="m-what">Text size and interface zoom — two independent dials.</span></li>
+  <li><span class="m-path">panels.svelte.ts</span><span class="m-what">The resizable-panel registry: variable, anchored edge, range.</span></li>
+  <li><span class="m-path">format.ts · version.ts</span><span class="m-what">Relative times and the build's own version.</span></li>
+</ul>
+
+<h3 id="one-directory-per-screen">One directory per screen<a class="anchor" href="#one-directory-per-screen" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Each holds a <code>store.svelte.ts</code>, its components, and — where the interesting decisions are
+  worth testing away from the markup — pure modules beside them.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Directory</th><th>Screen</th></tr></thead>
+  <tbody>
+    <tr><th><code>graph/</code></th><td>1A — plus lanes, portraits, avatars, columns, visibility, selection, the overlay and the actions behind every menu</td></tr>
+    <tr><th><code>diff/</code></th><td>1B — split pairing, syntax highlighting, image and binary comparison</td></tr>
+    <tr><th><code>changes/</code></th><td>1C — the staged/unstaged panes, the message box, discard</td></tr>
+    <tr><th><code>conflicts/</code></th><td>1D — the three panes, the resolve bar, the pager</td></tr>
+    <tr><th><code>rebase/</code></th><td>1E — the todo list and the preview</td></tr>
+    <tr><th><code>branches/</code></th><td>1F — the table, its columns, the divergence bar</td></tr>
+    <tr><th><code>stash/</code></th><td>1G — the lane, the list, the detail panel</td></tr>
+    <tr><th><code>requests/</code></th><td>1H — the list, the review workspace, the PR diff pane, markdown</td></tr>
+    <tr><th><code>search/</code></th><td>1I — the query bar, result rows, the blame strip</td></tr>
+    <tr><th><code>repos/</code></th><td>1J — the repository cards</td></tr>
+    <tr><th><code>settings/</code></th><td>1K — one component per section, plus the sentences it says about a value</td></tr>
+    <tr><th><code>clone/</code></th><td>1L — the modal and its running clone</td></tr>
+    <tr><th><code>reflog/</code></th><td>1M</td></tr>
+    <tr><th><code>tags/</code></th><td>1N</td></tr>
+    <tr><th><code>history/</code></th><td>1O — the timeline and the blame gutter</td></tr>
+    <tr><th><code>delight/</code></th><td>1P — the badge catalogue, the pure engine, cards, sounds, standings</td></tr>
+    <tr><th><code>farm/</code></th><td>1Q — the store, its own API module, and the drawer, ring, strip, cards and editors</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="the-shared-frame-and-kit">The shared frame and kit<a class="anchor" href="#the-shared-frame-and-kit" aria-label="Link to this section">#</a></h3>
+
+<ul class="modules">
+  <li><span class="m-path">chrome/</span><span class="m-what">Title bar, toolbar, nav rail, repository tabs, status strip, resize edges.</span></li>
+  <li><span class="m-path">ui/</span><span class="m-what">What more than one screen needs: <code>Menu</code>, <code>Dialog</code>, <code>Notice</code>, <code>Splitter</code>, <code>Chip</code>, <code>Icon</code>, the column machinery, the glass maps.</span></li>
+  <li><span class="m-path">palette/</span><span class="m-what">The command palette — a registry, not a list.</span></li>
+  <li><span class="m-path">commandlog/</span><span class="m-what">The drawer of what Spagitty actually ran.</span></li>
+  <li><span class="m-path">network/</span><span class="m-what">Fetch and push while they are happening.</span></li>
+  <li><span class="m-path">remotes/ · profiles/ · worktrees/ · submodules/</span><span class="m-what">Features that live in Settings or a modal rather than on a screen of their own.</span></li>
+</ul>
+
+<h2 id="everything-else">Everything else<a class="anchor" href="#everything-else" aria-label="Link to this section">#</a></h2>
+
+<ul class="modules">
+  <li><span class="m-path">agile/</span><span class="m-what">The working record: 136 items, their plans and their test sweeps. A test fails if the index and the tree disagree. See <a href="process.html">how we work</a>.</span></li>
+  <li><span class="m-path">docs/</span><span class="m-what">The in-repository documentation this wiki is built from — architecture, screens, testing, CI, branding, and the gap analysis the later screens came out of.</span></li>
+  <li><span class="m-path">assets/brand/</span><span class="m-what">The master <code>mark.svg</code> and everything generated from it. See <a href="branding.html">brand &amp; identity</a>.</span></li>
+  <li><span class="m-path">tools/</span><span class="m-what">The brand and icon generators, the release-notes reader gate 6 uses, and the tests that keep the working record honest.</span></li>
+  <li><span class="m-path">deny.toml</span><span class="m-what">Licence policy, banned crates, and accepted advisories recorded by id with a reason each.</span></li>
+</ul>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="architecture.html"><span class="pager-dir">Previous</span><span class="pager-title">Architecture</span></a>
+<a class="pager-link next" href="core-crate.html"><span class="pager-dir">Next</span><span class="pager-title">spagitty-core (git)</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

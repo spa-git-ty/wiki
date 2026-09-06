@@ -1,0 +1,345 @@
+<span class="eyebrow">How it is built</span>
+<h1><code>spagitty-core</code></h1>
+
+<p class="lede">
+  Every git operation Spagitty performs. UI-agnostic: no Tauri, no window handles, no events — so the
+  crate compiles and is tested without a GUI, and its examples run it from a terminal.
+</p>
+
+<pre><code>cargo run -p spagitty-core --example graph-dump -- /path/to/repo
+cargo run -p spagitty-core --example diff-dump  -- /path/to/repo</code></pre>
+
+<h2>The <code>git</code> binary boundary</h2>
+
+<p><code>shell.rs</code> is the <strong>only</strong> module in the workspace that spawns a process. The rule:</p>
+
+<blockquote>
+  <p>
+    If the operation mutates state that the wider git ecosystem also reads, or delegates to something
+    outside the repository, it shells out to <code>git</code>. Read-only history questions are
+    answered in-process with <code>gix</code>.
+  </p>
+</blockquote>
+
+<p>
+  So reads — log walking, refs, diffing, status, the index's conflict stages — are <code>gix</code>.
+  Interactive rebase execution, hooks, LFS, submodule recursion, credential helpers, committing,
+  staging, checkout, stash push, writing git config and cloning are <code>git</code>. The table in
+  that module's header is the authority, and it is extended in the same change that adds an operation
+  to it.
+</p>
+
+<p>
+  <code>gix</code> is MIT/Apache-2.0, which links cleanly into a GPL-3 program.
+</p>
+
+<h3>The one read that breaks the rule</h3>
+
+<p>
+  <code>shell::blame</code> shells out, and it is written down rather than quietly done.
+  <code>gix::blame</code> 0.16 — the newest published version — <em>panics</em> on an ordinary history
+  shape: a file blamed at a merge commit whose history contains an intervening commit that left the
+  file alone. Every diff algorithm and both rename settings do it. The exception carries an end
+  condition: blame moves back in-process when the upstream defect is fixed. It is the only read in the
+  workspace that spawns a process.
+</p>
+
+<h3>The one spawn that does not wait</h3>
+
+<p>
+  <code>shell::clone_start</code>. A clone runs for minutes, reports progress as it goes, and has to
+  be cancellable, so the caller owns the child process. Everything else in the module is a command
+  that ends.
+</p>
+
+<h2>Reading a repository</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">repo.rs</span>
+    <span class="m-what">
+      Opening a repository and describing it. <code>open</code>, <code>open_sync</code>,
+      <code>summary</code>, <code>workdir</code>, <code>info</code>, <code>last_fetched</code>,
+      <code>head</code>. <code>RepoSummary</code> is what the All repositories screen reads for a card
+      without opening the repository as the current one.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">graph.rs</span>
+    <span class="m-what">
+      History walking and lane assignment. <code>walk</code>, <code>walk_pinned</code>,
+      <code>all_tips</code>, <code>tips_for</code>. Carries <code>ROW_PITCH</code> — the constant
+      duplicated across the language boundary on purpose, with a test that reads the TypeScript file
+      and fails with both values named if they drift — plus <code>LaneEdge</code>, <code>GraphRow</code>,
+      <code>RowLanes</code> and the batch size the worker emits in.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">refs.rs</span>
+    <span class="m-what">
+      <code>RefIndex</code> — commit id to the refs pointing at it, built once per refresh and handed
+      to the walk, so attaching chips to a row is a hash lookup rather than a ref scan per commit.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">status.rs</span>
+    <span class="m-what">
+      The working-copy status walk and the counts the nav rail shows. Only the counts whose screens
+      exist are computed for real; the rest are <code>None</code>, and the rail renders <code>·</code>
+      rather than a number that would be wrong.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">search.rs</span>
+    <span class="m-what">
+      Finding commits. The same revision walk the graph does, with a predicate and without lanes — not
+      a second traversal of history. <code>Query</code>, <code>SearchRow</code>, <code>walk</code>.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">blame.rs</span>
+    <span class="m-what">
+      Who last touched each line, parsed from <code>git blame --line-porcelain</code>, plus the file
+      history walk behind screen 1O. What this module owns is the part git does not do: deciding what
+      is worth blaming at all. <code>NotBlamable</code> distinguishes a binary file, a missing path and
+      a directory — an empty list would read as a file nobody has ever touched.
+    </span>
+  </li>
+</ul>
+
+<h2>Diffs</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">diff.rs</span>
+    <span class="m-what">
+      Three levels, because they cost different amounts: <code>commit_detail</code> (the message and
+      the people), <code>commit_diff</code> (the file list and its totals), <code>file_diff</code>
+      (one file's hunks). Also the working-copy variants, the hunk patch a stage-hunk needs, and
+      <code>binary_file_diff</code> / <code>binary_working_diff</code>, which report a size delta and
+      a MIME type rather than pretending a binary has lines.
+    </span>
+  </li>
+</ul>
+
+<h2>Writing</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">work.rs</span>
+    <span class="m-what">
+      Changing the working copy: <code>stage</code>, <code>unstage</code>, <code>stage_hunk</code>,
+      <code>unstage_hunk</code>, <code>discard</code>, <code>discard_hunk</code>, <code>commit</code>.
+      Reading the working copy lives in <code>status.rs</code>; this is the writing half, and every
+      operation goes through <code>shell</code>.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">ops.rs</span>
+    <span class="m-what">
+      Every history operation the graph offers: <code>reset</code>, <code>revert</code>,
+      <code>cherry_pick</code>, <code>integrate</code> (merge / rebase / fast-forward, as one
+      <code>Integration</code> enum), <code>rebase_onto</code>, the interactive-rebase lifecycle,
+      <code>checkout_detached</code>, branch rename and delete, tag create and delete, the stash
+      actions, <code>fetch</code>, <code>pull</code> and <code>push</code>. Each is a thin,
+      <em>named</em> wrapper over <code>shell</code> — the naming is the point, because
+      <code>reset(Hard)</code> reads at the call site and <code>--hard</code> does not.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">shell.rs</span>
+    <span class="m-what">
+      The boundary itself. Around sixty functions, each one a <code>git</code> invocation, each one
+      recorded as it finishes. <code>ResetMode</code> and <code>PullMode</code> live here because they
+      are the shapes of git's own flags.
+    </span>
+  </li>
+</ul>
+
+<h2>Branches, tags, stashes, the reflog</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">branches.rs</span>
+    <span class="m-what">
+      <code>BranchRow</code>, <code>list</code>, <code>divergences</code>, <code>checkout</code>,
+      <code>create</code>. Ahead and behind are counted against the remote-tracking ref on disk, which
+      is whatever the last fetch left there: nothing here talks to a network, so the numbers are exact
+      for what is known locally and cannot be more current than that — and the screen says so rather
+      than implying it is live. The list re-opens the repository rather than reusing the session
+      handle, because <code>gix</code> reads config once at open time and a branch's upstream lives in
+      config.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">tags.rs</span>
+    <span class="m-what">
+      <code>tags</code>, <code>create</code>, <code>delete</code>, <code>retag</code>. Annotated and
+      lightweight are told apart throughout, because that difference decides whether a message can
+      exist at all.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">stash.rs</span>
+    <span class="m-what">
+      A stash is not a special kind of object: it is a commit whose first parent is the commit the
+      work was made on, and <code>refs/stash</code> is an ordinary ref whose reflog is the list.
+      <code>push</code> refuses the nothing-to-save case with a reason, because succeeding quietly
+      reads from a button as a stash that happened and then vanished.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">reflog.rs</span>
+    <span class="m-what">
+      Where a ref has been. <code>logged_refs</code>, <code>reflog</code>, and the three ways back to
+      a point in it.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">worktrees.rs</span>
+    <span class="m-what">
+      List, add, remove, lock, unlock, prune — parsing git's <code>--porcelain</code> stream, with the
+      parser exposed so it can be tested against captured output rather than a live repository.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">submodules.rs</span>
+    <span class="m-what">
+      Status, recursive init and update, URL sync, deinit — same shape, same testable parser.
+    </span>
+  </li>
+</ul>
+
+<h2>Rewriting and repairing</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">rebase.rs</span>
+    <span class="m-what">
+      Planning a history rewrite. <code>todo</code> generates the list rather than parsing the file
+      <code>git rebase -i</code> would open — running that would start a rebase, which is the thing the
+      screen exists to avoid — and there is a test comparing it against
+      <code>git rev-list --reverse --no-merges</code>. <code>plan</code> folds an edit list into a
+      <code>Preview</code>; <code>progress</code> reads git's own state counters while a rebase runs,
+      rather than parsing its output.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">conflicts.rs</span>
+    <span class="m-what">
+      A repository stopped mid-operation. <code>ConflictKind</code> is derived from which index stages
+      exist — no stage 1 means both sides added the path, a missing stage 2 or 3 means that side
+      deleted it. <code>operation</code> reads what is in progress from the repository's own state,
+      never inferring it from the presence of conflicts, because merge, rebase, cherry-pick and revert
+      all leave conflicts behind and naming the wrong one sends someone to the wrong command.
+      <code>regions</code>, <code>take</code>, <code>resolve_region</code>, <code>write_merged</code> and
+      <code>mark_resolved</code> are the write half; a test asserts that reading never touches the
+      index.
+    </span>
+  </li>
+</ul>
+
+<h2>Configuration and identity</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">identity.rs</span>
+    <span class="m-what">
+      Reading is a <code>gix</code> question — git's configuration cascade, resolved the way git
+      resolves it. Writing goes through the <code>git</code> binary. <code>Origin</code> is what makes
+      the screen honest: a value coming from the system configuration or the environment is named as
+      such rather than as a scope Spagitty writes. <code>IdentityProfile</code> and
+      <code>apply_profile</code> are the named-profiles feature.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">signing.rs</span>
+    <span class="m-what">
+      <code>commit.gpgsign</code> is the authority, never a preference of Spagitty's.
+      <code>Problem</code> is the difference between “git will not sign” and “git cannot sign”, which
+      are different things to tell someone.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">remotes.rs</span>
+    <span class="m-what">
+      Add, rename, remove, retarget — each through <code>git remote</code> rather than a config edit,
+      so git's own bookkeeping (refspecs, tracking refs) stays correct.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">tools.rs</span>
+    <span class="m-what">
+      External diff and merge tools: discovery on <code>PATH</code>, reading and writing git's own
+      <code>diff.tool</code> and <code>merge.tool</code> keys, and launching them.
+    </span>
+  </li>
+</ul>
+
+<h2>Bringing a repository in</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">clone.rs</span>
+    <span class="m-what">
+      Two pure things and no process: where a URL and a parent directory say the clone will land, and
+      what git's progress output means. <code>Problem</code> enumerates everything that can be refused
+      before the process starts. <code>Progress</code> parses <code>git clone --progress</code>, which
+      writes each phase to stderr terminated by a carriage return rather than a newline — and a line it
+      does not recognise is still shown, so a format change degrades to “no percentage” rather than “no
+      progress”.
+    </span>
+  </li>
+</ul>
+
+<h2>The forge — the network boundary</h2>
+
+<p>
+  This is the only part of Spagitty that talks to a network, and it is as narrow as the process
+  boundary and for the same reason: so that “what does this application send, and where” has one
+  answer.
+</p>
+
+<ul class="modules">
+  <li><span class="m-path">forge.rs</span><span class="m-what">The host-agnostic contract the Pull requests screen was designed against, before any host could be reached.</span></li>
+  <li><span class="m-path">forge/http.rs</span><span class="m-what">The only file that may construct or use the HTTP client. Exactly one, <code>ureq</code>, declared only in this crate.</span></li>
+  <li><span class="m-path">forge/github.rs</span><span class="m-what">One GraphQL request per refresh. REST would need a list call plus three per pull request for line counts, review decision and checks — ninety-one requests for thirty open ones.</span></li>
+  <li><span class="m-path">forge/gitlab.rs</span><span class="m-what">GitLab merge requests, mapped onto the same contract.</span></li>
+  <li><span class="m-path">forge/bitbucket.rs</span><span class="m-what">Bitbucket Cloud pull requests, same contract.</span></li>
+  <li><span class="m-path">forge/review.rs</span><span class="m-what">A pull request's files, and the review somebody leaves on it — REST here, with the reason written down where it departs from the list's GraphQL.</span></li>
+  <li><span class="m-path">forge/keychain.rs</span><span class="m-what">The token, in the OS keychain and never in a configuration file.</span></li>
+</ul>
+
+<h2>Supporting</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">record.rs</span>
+    <span class="m-what">
+      What Spagitty actually ran: a process-wide ring buffer of the last 200 executions, written by
+      <code>shell.rs</code> as each command finishes. <code>redact</code> strips a URL's userinfo on
+      the way <em>in</em>, so an entry that never held a token cannot leak one through the copy button.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">update.rs</span>
+    <span class="m-what">Whether there is a newer Spagitty than this one, and what it sends to find out — which is a release listing request and nothing else.</span>
+  </li>
+  <li>
+    <span class="m-path">error.rs</span>
+    <span class="m-what">
+      <code>Error</code>. Its <code>Display</code> text crosses into JavaScript as a plain string and
+      is shown to the user directly, so it is written in the same register as the rest of the
+      interface: plain, specific, no stack-trace jargon.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">fixture.rs</span>
+    <span class="m-what">
+      Real repositories for tests, built with the <code>git</code> binary — not with <code>gix</code>,
+      because a fixture built by the library under test would agree with it by construction. Published
+      behind a <code>fixture</code> feature so the Tauri layer can walk one too, and excluded from
+      coverage. A release build carries neither the fixtures nor <code>tempfile</code>.
+    </span>
+  </li>
+</ul>

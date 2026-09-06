@@ -1,0 +1,180 @@
+<span class="eyebrow">How it is built</span>
+<h1>The frontend</h1>
+
+<p class="lede">
+  SvelteKit 2 in SPA mode — <code>ssr = false</code>, <code>prerender = false</code>. Tauri serves a
+  static bundle from disk; there is no server. Svelte 5 runes throughout, TypeScript, built and tested
+  with Bun.
+</p>
+
+<h2>The rules</h2>
+
+<div class="rule">
+  <span class="note-label">Five, and they shape everything else</span>
+  <p>
+    <strong><code>src/lib/api.ts</code> is the only module that calls <code>invoke</code>.</strong>
+    A command rename is a one-file change.<br>
+    <strong>One directory per screen</strong>, each with a <code>store.svelte.ts</code> and its
+    components.<br>
+    <strong>Stores export a single object with getters</strong>, never the <code>$state</code>
+    variables themselves, so a screen cannot write another screen's state by accident.<br>
+    <strong>Structural numbers come from <code>metrics.ts</code>.</strong> There is no
+    <code>height: 26px</code> in any component.<br>
+    <strong>Standard git terminology only.</strong> fetch, push, stage, hunk, <code>stash@{n}</code>,
+    pick/squash/reword/drop, ours/theirs. No invented vocabulary, no friendly renaming of git
+    concepts.
+  </p>
+</div>
+
+<h2>Shared modules</h2>
+
+<ul class="modules">
+  <li><span class="m-path">api.ts</span><span class="m-what">Typed wrappers around every Tauri command. Everything else talks in the types from <code>types.ts</code>.</span></li>
+  <li><span class="m-path">types.ts</span><span class="m-what">The wire types, mirroring the <code>serde</code> shapes in the Rust crates by hand. Kept in step deliberately rather than generated — the wire shape is small, and a generator would be more machinery than the problem needs.</span></li>
+  <li><span class="m-path">metrics.ts</span><span class="m-what">Structural numbers, the single source of truth, published as CSS custom properties by <code>applyMetrics</code>. Carries <code>ROW_PITCH</code>, which Rust reads back at boot and compares.</span></li>
+  <li><span class="m-path">nav.ts</span><span class="m-what">The rail: screen codes, order, labels, and which count each row shows. The active item and the route are the same fact.</span></li>
+  <li><span class="m-path">repo.svelte.ts</span><span class="m-what">The open repository — which one, what HEAD is, and the rail counts. One is open at a time; opening another replaces it, which on the Rust side tears down the previous walk and watcher.</span></li>
+  <li><span class="m-path">workspace.svelte.ts</span><span class="m-what">Repository tabs, including tabs onto linked worktrees.</span></li>
+  <li><span class="m-path">session.ts</span><span class="m-what">What a launch resumes, as a sequence a test can watch.</span></li>
+  <li><span class="m-path">themes.ts · theme.svelte.ts</span><span class="m-what">Sixteen palettes as data, and which one is applied. Switching writes custom properties — no component re-render, no stylesheet swap.</span></li>
+  <li><span class="m-path">scale.svelte.ts</span><span class="m-what">Text size (90–130%) and interface zoom (100–200%), two independent dials that compose.</span></li>
+  <li><span class="m-path">panels.svelte.ts</span><span class="m-what">The panel registry: each panel names its CSS variable, its anchored edge and its range. <code>Splitter</code> takes any key.</span></li>
+  <li><span class="m-path">format.ts · version.ts</span><span class="m-what">Relative times, and the build's own version.</span></li>
+</ul>
+
+<h2>The persistent frame</h2>
+
+<p>
+  <code>src/lib/chrome/</code> holds the title bar, toolbar, nav rail, repository tabs, status strip
+  and resize edges. The window is created with <code>decorations: false</code>, so the platform draws
+  no title bar and Spagitty draws its own — which is also why the title bar is the drag handle and the
+  resize edges are a component.
+</p>
+
+<h3>Three things are mounted once, by the shell</h3>
+
+<p>
+  <code>Dialog</code> (every confirmation), <code>Notice</code> (every result) and the command log
+  drawer. An operation started on the graph can finish after the user has navigated away, and a dialog
+  owned by a screen would take the question with it.
+</p>
+
+<h2>The shared UI kit</h2>
+
+<ul class="modules">
+  <li><span class="m-path">ui/Menu.svelte</span><span class="m-what">Every right-click menu in the application is this component with a different list.</span></li>
+  <li><span class="m-path">ui/DialogHost · dialog.svelte.ts</span><span class="m-what">Every confirmation.</span></li>
+  <li><span class="m-path">ui/NoticeToast · notice.svelte.ts</span><span class="m-what">Every result.</span></li>
+  <li><span class="m-path">ui/Splitter.svelte</span><span class="m-what">Every resize handle. It measures <em>the panel beside it</em> rather than the window — the window's edge is the right reference only for the rail.</span></li>
+  <li><span class="m-path">ui/columns.svelte.ts</span><span class="m-what">A table's columns: which are shown, in what order, how wide — per repository. Extracted from the graph when the Branches screen needed the same thing.</span></li>
+  <li><span class="m-path">ui/liquidGlass.ts · liquidGlassMaps.ts</span><span class="m-what">The refraction. The arithmetic is pure and tested without a window; the measuring half does nothing at all when there is no lens to filter — which is every component test.</span></li>
+  <li><span class="m-path">ui/Icon.svelte · icons.ts</span><span class="m-what">The icon set as data.</span></li>
+  <li><span class="m-path">ui/BrandMark · RefChip · Chip · Btn</span><span class="m-what">The small shared pieces.</span></li>
+  <li><span class="m-path">ui/ScreenStub.svelte</span><span class="m-what">Rendered by no route any more. It stays because it is how the next unbuilt screen says what it will be rather than pretending to be it — a half-built screen that looks real is harder to read than an honest empty one.</span></li>
+</ul>
+
+<h2>The command palette</h2>
+
+<p>
+  <code>src/lib/palette/</code> is a <strong>registry, not a list</strong>. <code>commands.ts</code>
+  contributes the shell's own commands — navigation, the graph's view controls, appearance, and the
+  two repository-wide git verbs — and a feature contributes its own next to itself, so no single file
+  has to import every feature in order to name it.
+</p>
+
+<p>
+  It is the one place that picks its key notation from the platform at runtime, because macOS is a
+  build target and printing <code>Ctrl+</code> on a machine with no such key would be wrong.
+</p>
+
+<h2>Notable stores</h2>
+
+<h3>The graph store</h3>
+
+<p>
+  Rows live in a <strong>plain array, not in <code>$state</code></strong>. A repository with 200,000
+  commits would mean 200,000 deeply-proxied objects, and every batch would pay to re-wrap them.
+  Instead the array is untracked and a <code>version</code> counter is the reactive signal: appending a
+  batch is O(batch), and consumers re-read what they need. Nothing in the store holds a DOM node — the
+  row list is virtualised and the lanes are drawn on canvas.
+</p>
+
+<p>Around it:</p>
+
+<ul class="modules">
+  <li><span class="m-path">graph/lanes.ts</span><span class="m-what">Lane drawing. One canvas covers the lane column for the <em>visible</em> window only.</span></li>
+  <li><span class="m-path">graph/portrait.ts</span><span class="m-what">The author portrait as a description, rendered two ways — canvas for the node, CSS gradients for the Author column — so a person has one face on screen.</span></li>
+  <li><span class="m-path">graph/visibility.svelte.ts</span><span class="m-what">Hide, solo, smart visibility, pin-to-left. Each resolves to a root set for a fresh walk.</span></li>
+  <li><span class="m-path">graph/selection.svelte.ts</span><span class="m-what">A <em>second</em> selection, deliberately: the detail panel shows exactly one row, and the operations that act on several need their own.</span></li>
+  <li><span class="m-path">graph/overlay.svelte.ts</span><span class="m-what">The two things on the graph that are not commits — the work-in-progress node and the stashes.</span></li>
+  <li><span class="m-path">graph/actions.ts</span><span class="m-what">What the menus actually do. Kept apart from the menus that describe them, because the sentence shown before a <code>reset --hard</code> is as much of the feature as the reset.</span></li>
+</ul>
+
+<h3>The farm store</h3>
+
+<p>
+  Driven by events rather than a poll: a farm changes when an agent says something, which is at a
+  model's pace and on no schedule. The backend emits, the store applies, and the screen is a function
+  of the store. A snapshot is refetched shortly after a burst, so nothing drifts if an event was
+  missed. It has an API module of its own, for the same reason the shared one exists.
+</p>
+
+<h3>The delight layer</h3>
+
+<p>
+  <code>src/lib/delight/</code> is deliberately a <strong>sink</strong>: git actions push events into
+  it and it pushes nothing back. It holds no reference to <code>repo</code> — the shell tells it which
+  repository and which identity it belongs to — because almost everything that reports a git operation
+  is reachable from <code>repo</code>, and importing it back would close a cycle through half the
+  frontend.
+</p>
+
+<p>
+  <code>engine.ts</code> is pure, so the rule set is tested as a table rather than by driving the
+  application, and nothing in the directory can fail a git operation: every call site is discarded and
+  recording swallows its own failure. Its record lives in <code>localStorage</code>, keyed by
+  repository path, beside the theme and the column layouts — a lost record is a record of badges, not
+  of work, and git remains the only authority on what actually happened.
+</p>
+
+<h2 id="the-launch-sequence">The launch sequence</h2>
+
+<p>
+  <code>session.ts</code> holds what a launch resumes, as a sequence a test can watch: read the launch
+  path and open it, or else reopen the tab the last session was on, then land on its route. It used to
+  live inside the shell's <code>onMount</code>, where none of that could be asserted.
+</p>
+
+<h2>Testing the frontend</h2>
+
+<p>
+  Components are mounted for real against <strong>happy-dom</strong>, through vitest. The helpers live
+  in <code>src/testing/</code>: <code>mount.ts</code> renders a component and returns query handles,
+  and there are reactive stand-ins for the two stores the chrome reads.
+</p>
+
+<div class="note">
+  <span class="note-label">Why the stand-ins hold <code>$state</code></span>
+  <p>
+    A stub built from ordinary properties renders once and never updates, so every test about a
+    <em>change</em> would pass by rendering the initial value. The stand-ins hold real reactive state
+    for exactly that reason.
+  </p>
+</div>
+
+<p>
+  The coverage floor is <strong>branch</strong> coverage — 65% over <code>src/lib/**</code>.
+  <code>src/testing/**</code> is excluded because it is scaffolding, and <code>src/routes/**</code>
+  because those files are the screens' shells and their logic lives in <code>src/lib</code>. Details
+  on <a href="testing.html">testing</a>.
+</p>
+
+<h2>Development vs production styles</h2>
+
+<p>
+  Development injects scoped styles with component JavaScript (<code>emitCss: false</code>); production
+  continues extracting CSS assets. That is not a preference — it avoids a case where a stylesheet
+  request arriving before its component made the plugin's cold-cache fallback serve Svelte source as
+  CSS. A headless test checks the installed pipeline against that request order, because build success
+  alone does not test it.
+</p>

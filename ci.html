@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD &amp; Releases · Spagitty Wiki</title>
+<meta name="description" content="Six ordered gates, the coverage floor, the three release lanes, and when a merge publishes.">
+<meta name="keywords" content="ci, github actions, gates, coverage floor, release, cargo deny, gitleaks">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/ci.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="CI/CD &amp; Releases · Spagitty Wiki">
+<meta property="og:description" content="Six ordered gates, the coverage floor, the three release lanes, and when a merge publishes.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/ci.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CI/CD &amp; Releases · Spagitty Wiki">
+<meta name="twitter:description" content="Six ordered gates, the coverage floor, the three release lanes, and when a merge publishes.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "CI/CD & Releases", "description": "Six ordered gates, the coverage floor, the three release lanes, and when a merge publishes.", "url": "https://spa-git-ty.github.io/wiki/ci.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "CI/CD & releases", "item": "https://spa-git-ty.github.io/wiki/ci.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li class="here"><a href="ci.html" aria-current="page">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-gates">The gates</a></li>
+<li><a href="#what-runs-where">What runs where</a></li>
+<li><a href="#the-rules">The rules</a></li>
+<li><a href="#release-notes-come-from-the-changelog">Release notes come from the changelog</a></li>
+<li><a href="#the-three-release-lanes">The three release lanes</a></li>
+<li><a href="#running-the-gates-locally">Running the gates locally</a></li>
+<li><a href="#candidate-gates-not-adopted">Candidate gates, not adopted</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How we work</span>
+<h1>CI/CD &amp; releases</h1>
+
+<p class="lede">
+  The pipeline is a sequence of gates in a fixed order. A gate that fails stops the pipeline; nothing
+  downstream runs. Cheapest and most certain first, so an obvious failure never burns a full
+  three-platform build.
+</p>
+
+<h2 id="the-gates">The gates<a class="anchor" href="#the-gates" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>Gate</th><th>Runs</th><th>Proves</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>0</th><td>Scope</td>
+      <td>A diff of the push or pull request against the previous tip</td>
+      <td>Whether the change <em>ships</em> in the application. Gates 5 and 6 read this; documentation alone is not a release.</td>
+    </tr>
+    <tr>
+      <th>1</th><td>License</td>
+      <td><code>cargo deny check licenses bans sources</code>, a licence check over the JS production tree, plus a check that the licence files and both manifests still say GPL-3.0-or-later</td>
+      <td>Every dependency's licence is identified and permitted, and nothing conflicts with shipping under GPL-3.</td>
+    </tr>
+    <tr>
+      <th>2</th><td>Code quality</td>
+      <td><code>cargo fmt --all --check</code>, <code>cargo clippy --workspace --all-targets -- -D warnings</code>, <code>bun run check</code>, plus the brand and icon generators in <code>--check</code> mode</td>
+      <td>Formatting, lints and types across both languages, and no drift between the brand generators and the committed art.</td>
+    </tr>
+    <tr>
+      <th>3</th><td>Tests and coverage</td>
+      <td><code>cargo llvm-cov --workspace --fail-under-lines 70</code>, <code>bun run coverage</code></td>
+      <td>The suite passes and first-party coverage holds its floor: 70% for Rust, 65% branches for the frontend.</td>
+    </tr>
+    <tr>
+      <th>4</th><td>Security</td>
+      <td><code>cargo deny check advisories</code>, <code>bun audit --audit-level=high</code>, <code>gitleaks</code> over the diff</td>
+      <td>No known-vulnerable dependency at high or above, and no secret in the change.</td>
+    </tr>
+    <tr>
+      <th>5</th><td>Build</td>
+      <td><code>bun run tauri build</code> on Linux, macOS and Windows — <strong>main, shipping changes only</strong></td>
+      <td>The release build works on every target, not only the one the author uses.</td>
+    </tr>
+    <tr>
+      <th>6</th><td>Release</td>
+      <td>Tag, artifacts, and notes read from <code>CHANGELOG.md</code> — <strong>main, shipping changes only</strong></td>
+      <td>The build is published, carries its changelog section as notes, and is traceable to a commit.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="what-runs-where">What runs where<a class="anchor" href="#what-runs-where" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Branch</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr>
+      <th><code>main</code></th>
+      <td>
+        Gates 1 to 4 on every push. Gates 5 and 6 run only when the change <em>ships</em> — something
+        under <code>src/</code>, <code>src-tauri/</code>, <code>crates/</code>, or a version, lockfile
+        or frontend config the built application depends on. Passing gate 6 publishes the release. A
+        README, docs, working-record or brand-collateral edit is not a publish: those land without
+        rebuilding three platforms or tagging, and ride the next version. The scope job makes that
+        call.
+      </td>
+    </tr>
+    <tr>
+      <th><code>dev</code></th>
+      <td>Gates 1 to 4, automatically, then the pipeline stops. Building and publishing an alpha from <code>dev</code> is a manual action: run the prerelease workflow and give it an alpha number. It produces <code>vX.Y.Z-alpha.N</code>, which is never a release of <code>main</code>.</td>
+    </tr>
+    <tr>
+      <th>Pull requests</th>
+      <td>Gates 1 to 4, into either branch. Since a pull request is the only path into a protected branch, that is where the results are read.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="every-lane-builds-all-three-platforms">Every lane builds all three platforms<a class="anchor" href="#every-lane-builds-all-three-platforms" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Gate 5 and the prerelease workflow each run on Linux, macOS and Windows runners; the draft workflow
+  builds Linux, Windows, and macOS on <em>two</em> runners — Apple silicon and Intel — since a build
+  made on one does not run on the other. Gate 5's macOS build is Apple silicon only, so a published
+  release currently has no Intel Mac download. That is recorded as an open question rather than fixed
+  unwatched on the blocking release path.
+</p>
+
+<div class="warn">
+  <span class="note-label">Nothing is signed</span>
+  <p>
+    There is no Apple Developer account and no code-signing certificate in this project, so macOS
+    Gatekeeper refuses a downloaded build on a double-click and Windows SmartScreen warns. The draft
+    lane's release notes carry the one step a Mac user needs. Adding real signing is a change to gate 5
+    and the draft lane together, not to one of them.
+  </p>
+</div>
+
+<h2 id="the-rules">The rules<a class="anchor" href="#the-rules" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li>
+    <strong>Gates are blocking, not advisory.</strong> A red gate is fixed, not bypassed.
+    <code>continue-on-error</code> is not used to get a merge through, and neither is a re-run until it
+    passes.
+  </li>
+  <li>
+    <strong>An advisory that cannot be fixed is recorded, not silenced.</strong> The
+    <code>[advisories] ignore</code> list carries accepted risk <em>by advisory id</em>, each with its
+    crate and its reason, so anything not listed still fails gate 4. That is the line between
+    recording a risk and switching the gate off, and only the first is allowed. A blanket setting —
+    <code>unmaintained = "warn"</code>, or dropping the check — is the second wearing different
+    clothes.
+    <br><br>
+    Sixteen entries are listed today, all <em>unmaintained</em>, none a vulnerability, and eleven of
+    them the GTK3 bindings Tauri links against on Linux with no upgrade available. They are deleted
+    when Tauri moves to GTK4.
+  </li>
+  <li>
+    <strong>The order is fixed.</strong> A new check joins an existing gate or becomes a new one in the
+    right place — it does not get bolted onto whichever job is convenient.
+  </li>
+  <li>
+    <strong>The coverage floor is defined once per language</strong>, and the two are not the same
+    number.
+  </li>
+  <li>
+    <strong>Tags are never moved.</strong> Gate 6 refuses to publish over a tag that already exists and
+    tells you to bump the version instead.
+  </li>
+</ul>
+
+<h2 id="release-notes-come-from-the-changelog">Release notes come from the changelog<a class="anchor" href="#release-notes-come-from-the-changelog" aria-label="Link to this section">#</a></h2>
+
+<p>
+  A version's section in <code>CHANGELOG.md</code> becomes that version's release notes
+  <em>verbatim</em>. Gate 6 reads it and refuses to release without one, so a changelog entry is
+  written into <code>## [Unreleased]</code> in the same change as the work it describes rather than
+  reconstructed afterwards from commit messages.
+</p>
+
+<p>
+  The format follows <a href="https://keepachangelog.com/en/1.1.0/" rel="noopener">Keep a
+  Changelog</a>; versions follow <a href="https://semver.org/spec/v2.0.0.html" rel="noopener">Semantic
+  Versioning</a>. Spagitty is at <code>0.x</code>: the surface is not stable, MINOR may break, PATCH
+  stays backward-compatible.
+</p>
+
+<h2 id="the-three-release-lanes">The three release lanes<a class="anchor" href="#the-three-release-lanes" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Lane</th><th>Triggered by</th><th>Produces</th></tr></thead>
+  <tbody>
+    <tr><th>Release</th><td>A shipping merge into <code>main</code></td><td><code>vX.Y.Z</code>, tagged, with installers for three platforms and the changelog section as notes.</td></tr>
+    <tr><th>Prerelease</th><td>Run by hand from <code>dev</code>, given an alpha number</td><td><code>vX.Y.Z-alpha.N</code>. Never a release of <code>main</code>.</td></tr>
+    <tr><th>Draft</th><td>Run by hand</td><td>A draft release, including an Intel macOS build, for checking artifacts before they are public.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="running-the-gates-locally">Running the gates locally<a class="anchor" href="#running-the-gates-locally" aria-label="Link to this section">#</a></h2>
+
+<p>Gates 1 to 3 are what a change is checked against before it is committed.</p>
+
+<pre><code>bun install --frozen-lockfile              # the dependencies, locked
+cargo deny check licenses bans sources     # gate 1
+cargo fmt --all --check                    # gate 2
+cargo clippy --workspace --all-targets -- -D warnings
+bun run check
+python3 tools/make-icons.py --check        # gate 2 — brand drift
+python3 tools/make-brand.py --check
+cargo llvm-cov --workspace \
+  --ignore-filename-regex '(fixture|testing)\.rs' --summary-only
+bun run coverage                           # gate 3
+cargo deny check advisories                # gate 4
+bun audit --audit-level=high</code></pre>
+
+<pre><code>cargo install cargo-deny cargo-llvm-cov</code></pre>
+
+<div class="note">
+  <span class="note-label">One difference between local and the runner</span>
+  <p>
+    <code>gitleaks</code> walks the pull request's merge ref on CI and the branch tip locally, so the
+    commit counts differ. Both scan everything they are given.
+  </p>
+</div>
+
+<h2 id="candidate-gates-not-adopted">Candidate gates, not adopted<a class="anchor" href="#candidate-gates-not-adopted" aria-label="Link to this section">#</a></h2>
+
+<p>Recorded as proposals. None is in force:</p>
+
+<ul>
+  <li><strong>Supply-chain provenance at release</strong> — an SBOM and signed artifacts, between gates 5 and 6.</li>
+  <li><strong>Artifact smoke test</strong> — launch the built application and perform one core operation, after gate 5. It catches the class of failure where everything compiles, every test passes, and the packaged app is broken.</li>
+  <li><strong>Working-record compliance</strong> — verify a branch name carries a valid work item id and that its documents exist. Would sit at gate 0; costs nothing.</li>
+  <li><strong>Commit and PR hygiene</strong> — conventional-commit linting. Its original payoff, reliable generated notes, lapsed when gate 6 moved onto the changelog, but tidy history remains its own argument.</li>
+</ul>
+
+<p>
+  The cross-platform build matrix was also a candidate. It is adopted, and is what gate 5 already
+  does.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="testing.html"><span class="pager-dir">Previous</span><span class="pager-title">Testing</span></a>
+<a class="pager-link next" href="process.html"><span class="pager-dir">Next</span><span class="pager-title">How we work</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Frontend · Spagitty Wiki</title>
+<meta name="description" content="The SvelteKit app: one store per screen, the single API module, the shared UI kit, the metrics contract and the delight layer.">
+<meta name="keywords" content="sveltekit, svelte 5, runes, stores, command palette, virtualised list">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/frontend.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="The Frontend · Spagitty Wiki">
+<meta property="og:description" content="The SvelteKit app: one store per screen, the single API module, the shared UI kit, the metrics contract and the delight layer.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/frontend.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Frontend · Spagitty Wiki">
+<meta name="twitter:description" content="The SvelteKit app: one store per screen, the single API module, the shared UI kit, the metrics contract and the delight layer.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "The Frontend", "description": "The SvelteKit app: one store per screen, the single API module, the shared UI kit, the metrics contract and the delight layer.", "url": "https://spa-git-ty.github.io/wiki/frontend.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "The frontend", "item": "https://spa-git-ty.github.io/wiki/frontend.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li class="here"><a href="frontend.html" aria-current="page">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-rules">The rules</a></li>
+<li><a href="#shared-modules">Shared modules</a></li>
+<li><a href="#the-persistent-frame">The persistent frame</a></li>
+<li><a href="#the-shared-ui-kit">The shared UI kit</a></li>
+<li><a href="#the-command-palette">The command palette</a></li>
+<li><a href="#notable-stores">Notable stores</a></li>
+<li><a href="#testing-the-frontend">Testing the frontend</a></li>
+<li><a href="#development-vs-production-styles">Development vs production styles</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How it is built</span>
+<h1>The frontend</h1>
+
+<p class="lede">
+  SvelteKit 2 in SPA mode — <code>ssr = false</code>, <code>prerender = false</code>. Tauri serves a
+  static bundle from disk; there is no server. Svelte 5 runes throughout, TypeScript, built and tested
+  with Bun.
+</p>
+
+<h2 id="the-rules">The rules<a class="anchor" href="#the-rules" aria-label="Link to this section">#</a></h2>
+
+<div class="rule">
+  <span class="note-label">Five, and they shape everything else</span>
+  <p>
+    <strong><code>src/lib/api.ts</code> is the only module that calls <code>invoke</code>.</strong>
+    A command rename is a one-file change.<br>
+    <strong>One directory per screen</strong>, each with a <code>store.svelte.ts</code> and its
+    components.<br>
+    <strong>Stores export a single object with getters</strong>, never the <code>$state</code>
+    variables themselves, so a screen cannot write another screen's state by accident.<br>
+    <strong>Structural numbers come from <code>metrics.ts</code>.</strong> There is no
+    <code>height: 26px</code> in any component.<br>
+    <strong>Standard git terminology only.</strong> fetch, push, stage, hunk, <code>stash@{n}</code>,
+    pick/squash/reword/drop, ours/theirs. No invented vocabulary, no friendly renaming of git
+    concepts.
+  </p>
+</div>
+
+<h2 id="shared-modules">Shared modules<a class="anchor" href="#shared-modules" aria-label="Link to this section">#</a></h2>
+
+<ul class="modules">
+  <li><span class="m-path">api.ts</span><span class="m-what">Typed wrappers around every Tauri command. Everything else talks in the types from <code>types.ts</code>.</span></li>
+  <li><span class="m-path">types.ts</span><span class="m-what">The wire types, mirroring the <code>serde</code> shapes in the Rust crates by hand. Kept in step deliberately rather than generated — the wire shape is small, and a generator would be more machinery than the problem needs.</span></li>
+  <li><span class="m-path">metrics.ts</span><span class="m-what">Structural numbers, the single source of truth, published as CSS custom properties by <code>applyMetrics</code>. Carries <code>ROW_PITCH</code>, which Rust reads back at boot and compares.</span></li>
+  <li><span class="m-path">nav.ts</span><span class="m-what">The rail: screen codes, order, labels, and which count each row shows. The active item and the route are the same fact.</span></li>
+  <li><span class="m-path">repo.svelte.ts</span><span class="m-what">The open repository — which one, what HEAD is, and the rail counts. One is open at a time; opening another replaces it, which on the Rust side tears down the previous walk and watcher.</span></li>
+  <li><span class="m-path">workspace.svelte.ts</span><span class="m-what">Repository tabs, including tabs onto linked worktrees.</span></li>
+  <li><span class="m-path">session.ts</span><span class="m-what">What a launch resumes, as a sequence a test can watch.</span></li>
+  <li><span class="m-path">themes.ts · theme.svelte.ts</span><span class="m-what">Sixteen palettes as data, and which one is applied. Switching writes custom properties — no component re-render, no stylesheet swap.</span></li>
+  <li><span class="m-path">scale.svelte.ts</span><span class="m-what">Text size (90–130%) and interface zoom (100–200%), two independent dials that compose.</span></li>
+  <li><span class="m-path">panels.svelte.ts</span><span class="m-what">The panel registry: each panel names its CSS variable, its anchored edge and its range. <code>Splitter</code> takes any key.</span></li>
+  <li><span class="m-path">format.ts · version.ts</span><span class="m-what">Relative times, and the build's own version.</span></li>
+</ul>
+
+<h2 id="the-persistent-frame">The persistent frame<a class="anchor" href="#the-persistent-frame" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>src/lib/chrome/</code> holds the title bar, toolbar, nav rail, repository tabs, status strip
+  and resize edges. The window is created with <code>decorations: false</code>, so the platform draws
+  no title bar and Spagitty draws its own — which is also why the title bar is the drag handle and the
+  resize edges are a component.
+</p>
+
+<h3 id="three-things-are-mounted-once-by-the-shell">Three things are mounted once, by the shell<a class="anchor" href="#three-things-are-mounted-once-by-the-shell" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>Dialog</code> (every confirmation), <code>Notice</code> (every result) and the command log
+  drawer. An operation started on the graph can finish after the user has navigated away, and a dialog
+  owned by a screen would take the question with it.
+</p>
+
+<h2 id="the-shared-ui-kit">The shared UI kit<a class="anchor" href="#the-shared-ui-kit" aria-label="Link to this section">#</a></h2>
+
+<ul class="modules">
+  <li><span class="m-path">ui/Menu.svelte</span><span class="m-what">Every right-click menu in the application is this component with a different list.</span></li>
+  <li><span class="m-path">ui/DialogHost · dialog.svelte.ts</span><span class="m-what">Every confirmation.</span></li>
+  <li><span class="m-path">ui/NoticeToast · notice.svelte.ts</span><span class="m-what">Every result.</span></li>
+  <li><span class="m-path">ui/Splitter.svelte</span><span class="m-what">Every resize handle. It measures <em>the panel beside it</em> rather than the window — the window's edge is the right reference only for the rail.</span></li>
+  <li><span class="m-path">ui/columns.svelte.ts</span><span class="m-what">A table's columns: which are shown, in what order, how wide — per repository. Extracted from the graph when the Branches screen needed the same thing.</span></li>
+  <li><span class="m-path">ui/liquidGlass.ts · liquidGlassMaps.ts</span><span class="m-what">The refraction. The arithmetic is pure and tested without a window; the measuring half does nothing at all when there is no lens to filter — which is every component test.</span></li>
+  <li><span class="m-path">ui/Icon.svelte · icons.ts</span><span class="m-what">The icon set as data.</span></li>
+  <li><span class="m-path">ui/BrandMark · RefChip · Chip · Btn</span><span class="m-what">The small shared pieces.</span></li>
+  <li><span class="m-path">ui/ScreenStub.svelte</span><span class="m-what">Rendered by no route any more. It stays because it is how the next unbuilt screen says what it will be rather than pretending to be it — a half-built screen that looks real is harder to read than an honest empty one.</span></li>
+</ul>
+
+<h2 id="the-command-palette">The command palette<a class="anchor" href="#the-command-palette" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>src/lib/palette/</code> is a <strong>registry, not a list</strong>. <code>commands.ts</code>
+  contributes the shell's own commands — navigation, the graph's view controls, appearance, and the
+  two repository-wide git verbs — and a feature contributes its own next to itself, so no single file
+  has to import every feature in order to name it.
+</p>
+
+<p>
+  It is the one place that picks its key notation from the platform at runtime, because macOS is a
+  build target and printing <code>Ctrl+</code> on a machine with no such key would be wrong.
+</p>
+
+<h2 id="notable-stores">Notable stores<a class="anchor" href="#notable-stores" aria-label="Link to this section">#</a></h2>
+
+<h3 id="the-graph-store">The graph store<a class="anchor" href="#the-graph-store" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Rows live in a <strong>plain array, not in <code>$state</code></strong>. A repository with 200,000
+  commits would mean 200,000 deeply-proxied objects, and every batch would pay to re-wrap them.
+  Instead the array is untracked and a <code>version</code> counter is the reactive signal: appending a
+  batch is O(batch), and consumers re-read what they need. Nothing in the store holds a DOM node — the
+  row list is virtualised and the lanes are drawn on canvas.
+</p>
+
+<p>Around it:</p>
+
+<ul class="modules">
+  <li><span class="m-path">graph/lanes.ts</span><span class="m-what">Lane drawing. One canvas covers the lane column for the <em>visible</em> window only.</span></li>
+  <li><span class="m-path">graph/portrait.ts</span><span class="m-what">The author portrait as a description, rendered two ways — canvas for the node, CSS gradients for the Author column — so a person has one face on screen.</span></li>
+  <li><span class="m-path">graph/visibility.svelte.ts</span><span class="m-what">Hide, solo, smart visibility, pin-to-left. Each resolves to a root set for a fresh walk.</span></li>
+  <li><span class="m-path">graph/selection.svelte.ts</span><span class="m-what">A <em>second</em> selection, deliberately: the detail panel shows exactly one row, and the operations that act on several need their own.</span></li>
+  <li><span class="m-path">graph/overlay.svelte.ts</span><span class="m-what">The two things on the graph that are not commits — the work-in-progress node and the stashes.</span></li>
+  <li><span class="m-path">graph/actions.ts</span><span class="m-what">What the menus actually do. Kept apart from the menus that describe them, because the sentence shown before a <code>reset --hard</code> is as much of the feature as the reset.</span></li>
+</ul>
+
+<h3 id="the-farm-store">The farm store<a class="anchor" href="#the-farm-store" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Driven by events rather than a poll: a farm changes when an agent says something, which is at a
+  model's pace and on no schedule. The backend emits, the store applies, and the screen is a function
+  of the store. A snapshot is refetched shortly after a burst, so nothing drifts if an event was
+  missed. It has an API module of its own, for the same reason the shared one exists.
+</p>
+
+<h3 id="the-delight-layer">The delight layer<a class="anchor" href="#the-delight-layer" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>src/lib/delight/</code> is deliberately a <strong>sink</strong>: git actions push events into
+  it and it pushes nothing back. It holds no reference to <code>repo</code> — the shell tells it which
+  repository and which identity it belongs to — because almost everything that reports a git operation
+  is reachable from <code>repo</code>, and importing it back would close a cycle through half the
+  frontend.
+</p>
+
+<p>
+  <code>engine.ts</code> is pure, so the rule set is tested as a table rather than by driving the
+  application, and nothing in the directory can fail a git operation: every call site is discarded and
+  recording swallows its own failure. Its record lives in <code>localStorage</code>, keyed by
+  repository path, beside the theme and the column layouts — a lost record is a record of badges, not
+  of work, and git remains the only authority on what actually happened.
+</p>
+
+<h2 id="the-launch-sequence">The launch sequence</h2>
+
+<p>
+  <code>session.ts</code> holds what a launch resumes, as a sequence a test can watch: read the launch
+  path and open it, or else reopen the tab the last session was on, then land on its route. It used to
+  live inside the shell's <code>onMount</code>, where none of that could be asserted.
+</p>
+
+<h2 id="testing-the-frontend">Testing the frontend<a class="anchor" href="#testing-the-frontend" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Components are mounted for real against <strong>happy-dom</strong>, through vitest. The helpers live
+  in <code>src/testing/</code>: <code>mount.ts</code> renders a component and returns query handles,
+  and there are reactive stand-ins for the two stores the chrome reads.
+</p>
+
+<div class="note">
+  <span class="note-label">Why the stand-ins hold <code>$state</code></span>
+  <p>
+    A stub built from ordinary properties renders once and never updates, so every test about a
+    <em>change</em> would pass by rendering the initial value. The stand-ins hold real reactive state
+    for exactly that reason.
+  </p>
+</div>
+
+<p>
+  The coverage floor is <strong>branch</strong> coverage — 65% over <code>src/lib/**</code>.
+  <code>src/testing/**</code> is excluded because it is scaffolding, and <code>src/routes/**</code>
+  because those files are the screens' shells and their logic lives in <code>src/lib</code>. Details
+  on <a href="testing.html">testing</a>.
+</p>
+
+<h2 id="development-vs-production-styles">Development vs production styles<a class="anchor" href="#development-vs-production-styles" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Development injects scoped styles with component JavaScript (<code>emitCss: false</code>); production
+  continues extracting CSS assets. That is not a preference — it avoids a case where a stylesheet
+  request arriving before its component made the plugin's cold-cache fallback serve Svelte source as
+  CSS. A headless test checks the installed pipeline against that request order, because build success
+  alone does not test it.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="tauri-layer.html"><span class="pager-dir">Previous</span><span class="pager-title">The Tauri layer</span></a>
+<a class="pager-link next" href="ipc.html"><span class="pager-dir">Next</span><span class="pager-title">IPC reference</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

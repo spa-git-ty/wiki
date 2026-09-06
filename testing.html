@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testing · Spagitty Wiki</title>
+<meta name="description" content="What is tested and how — headless suites, real repository fixtures, the one test that crosses the language boundary, and how the app is driven for a visual sweep.">
+<meta name="keywords" content="testing, vitest, cargo test, coverage, fixtures, happy-dom">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/testing.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="Testing · Spagitty Wiki">
+<meta property="og:description" content="What is tested and how — headless suites, real repository fixtures, the one test that crosses the language boundary, and how the app is driven for a visual sweep.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/testing.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Testing · Spagitty Wiki">
+<meta name="twitter:description" content="What is tested and how — headless suites, real repository fixtures, the one test that crosses the language boundary, and how the app is driven for a visual sweep.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "Testing", "description": "What is tested and how \u2014 headless suites, real repository fixtures, the one test that crosses the language boundary, and how the app is driven for a visual sweep.", "url": "https://spa-git-ty.github.io/wiki/testing.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "Testing", "item": "https://spa-git-ty.github.io/wiki/testing.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li class="here"><a href="testing.html" aria-current="page">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#headless">Headless</a></li>
+<li><a href="#fixtures-in-the-rust-tests">Fixtures in the Rust tests</a></li>
+<li><a href="#fixtures-in-the-tauri-layer">Fixtures in the Tauri layer</a></li>
+<li><a href="#the-one-test-that-crosses-the-language-boundary">The one test that crosses the language boundary</a></li>
+<li><a href="#the-frontend">The frontend</a></li>
+<li><a href="#the-farms-own-tests">The farm&#x27;s own tests</a></li>
+<li><a href="#the-fixture-repository-for-manual-sweeps">The fixture repository for manual sweeps</a></li>
+<li><a href="#the-visual-sweep">The visual sweep</a></li>
+<li><a href="#what-is-deliberately-not-tested">What is deliberately not tested</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How we work</span>
+<h1>Testing</h1>
+
+<p class="lede">
+  What is checked, how, and what is deliberately not. Anything that reads a repository is tested
+  against a real one; anything pure is tested as a table; and the parts that need a window say so
+  rather than pretending a mock proved something.
+</p>
+
+<h2 id="headless">Headless<a class="anchor" href="#headless" aria-label="Link to this section">#</a></h2>
+
+<pre><code>cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+
+bun run check          # svelte-kit sync &amp;&amp; svelte-check
+bun run test           # vitest, run through bun
+bun run coverage       # vitest with the coverage floor enforced</code></pre>
+
+<p>Coverage of first-party code is measured on both sides and both must clear their floor:</p>
+
+<pre><code>cargo llvm-cov --workspace \
+  --ignore-filename-regex '(fixture|testing)\.rs' --summary-only
+bun run coverage</code></pre>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Side</th><th>Floor</th><th>Scope</th></tr></thead>
+  <tbody>
+    <tr><th>Rust</th><td>70% lines</td><td>The workspace, with <code>fixture.rs</code> excluded — it is test scaffolding, and counting a helper every test exercises would lift the figure without any product code being tested.</td></tr>
+    <tr><th>Frontend</th><td>65% branches</td><td><code>src/lib/**</code>. <code>src/testing/**</code> is excluded for the same reason, and <code>src/routes/**</code> because those files are the screens' shells and their logic lives in <code>src/lib</code>.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  They are not the same number, and neither is a line count for the whole tree. Each floor is defined
+  once — in the workflow for Rust, in <code>vite.config.ts</code> for the frontend — so
+  <code>bun run coverage</code> fails locally for exactly the reason it would fail in CI.
+</p>
+
+<h2 id="fixtures-in-the-rust-tests">Fixtures in the Rust tests<a class="anchor" href="#fixtures-in-the-rust-tests" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>crates/spagitty-core/src/fixture.rs</code> builds real repositories with the <code>git</code>
+  binary — <strong>not with <code>gix</code></strong>, because a fixture built by the library under
+  test would agree with it by construction.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Fixture</th><th>Is</th></tr></thead>
+  <tbody>
+    <tr><th><code>Fixture::empty()</code></th><td>An initialised repository with no commits.</td></tr>
+    <tr><th><code>Fixture::woven()</code></th><td>The standard history — a merge, a merged branch and an unmerged one, tags of both kinds, stashes — with a clean working copy.</td></tr>
+    <tr><th><code>Fixture::dirty()</code></th><td>The same, with work in progress.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Each lives in a temporary directory that is removed with it.</p>
+
+<h2 id="fixtures-in-the-tauri-layer">Fixtures in the Tauri layer<a class="anchor" href="#fixtures-in-the-tauri-layer" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>src-tauri</code> tests the graph worker, the watcher's debounce and the session against a real
+  repository too. Two things make that possible:
+</p>
+
+<ul>
+  <li>
+    Everything in <code>src-tauri</code> that touches the application is <strong>generic over
+    <code>R: tauri::Runtime</code></strong>, so <code>tauri::test::mock_app</code> can supply an
+    <code>AppHandle&lt;MockRuntime&gt;</code>.
+  </li>
+  <li>
+    <code>spagitty-core</code>'s fixtures are public behind a <code>fixture</code> feature, which
+    <code>src-tauri</code> enables as a dev-dependency — one fixture builder for the workspace rather
+    than two things building repositories with the <code>git</code> binary. Nothing enables it outside
+    tests, so a release build carries neither the fixtures nor <code>tempfile</code>.
+  </li>
+</ul>
+
+<p>
+  <code>src-tauri/src/testing.rs</code> holds what an event test needs beyond that: a mock application
+  managing the real state, an <code>Emitted&lt;T&gt;</code> collector with <code>at_least(n)</code> and
+  <code>no_more_than(n)</code>, and <code>finishes_promptly</code>, which puts a deadline on a drop.
+  That last one matters — dropping a worker joins its thread, so a worker that ignored its shutdown
+  would <em>hang</em> the runner rather than fail.
+</p>
+
+<p>
+  It also points <code>HOME</code> and the platform's other configuration variables at a temporary
+  directory, once for the whole test binary: <code>open_repo</code> writes to the recent-repositories
+  list, and a test run must not add rows to the list of repositories you have opened.
+</p>
+
+<h2 id="the-one-test-that-crosses-the-language-boundary">The one test that crosses the language boundary<a class="anchor" href="#the-one-test-that-crosses-the-language-boundary" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>ROW_PITCH</code> exists twice: in <code>src/lib/metrics.ts</code>, which is the source of
+  truth, and in <code>crates/spagitty-core/src/graph.rs</code>, which describes lane elbows in row
+  units and so needs the same number.
+</p>
+
+<p>
+  Two copies of a constant in two languages drift — and they did. The geometry moved on one side while
+  doc comments on <em>both</em> sides claimed a test was holding them together. There was no such
+  test.
+</p>
+
+<p>
+  <code>graph::tests::row_pitch_matches_the_frontend</code> is that test now. It resolves the
+  TypeScript file from <code>CARGO_MANIFEST_DIR</code>, reads the <code>export const ROW_PITCH</code>
+  declaration out of it, and asserts it against the crate's constant — failing with both values named
+  so the message says which side moved.
+</p>
+
+<p>
+  It is the only test that reads another language's source, and it earns that by being about the only
+  constant duplicated across the boundary. Anything else needing to cross should go through the
+  existing IPC types.
+</p>
+
+<h2 id="the-frontend">The frontend<a class="anchor" href="#the-frontend" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Components are mounted for real against <strong>happy-dom</strong>. The helpers live in
+  <code>src/testing/</code>: <code>mount.ts</code> renders a component and returns query handles, and
+  there are reactive stand-ins for the two stores the chrome reads.
+</p>
+
+<div class="note">
+  <span class="note-label">The stand-ins hold real state</span>
+  <p>
+    A stub built from ordinary properties renders once and never updates, so every test about a
+    <em>change</em> would pass by rendering the initial value.
+  </p>
+</div>
+
+<h3 id="what-is-tested-away-from-the-markup">What is tested away from the markup<a class="anchor" href="#what-is-tested-away-from-the-markup" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Wherever the interesting decision is a pure function, it lives beside the component and is tested as
+  a table: the lane fold, the split-view pairing, the syntax tokeniser, the achievement engine, the
+  farm's scheduler and router, the settings screen's sentences about where a value came from, the
+  divergence bar's geometry, and the glass maps' arithmetic.
+</p>
+
+<h3 id="tests-that-hold-a-rule-rather-than-a-behaviour">Tests that hold a rule rather than a behaviour<a class="anchor" href="#tests-that-hold-a-rule-rather-than-a-behaviour" aria-label="Link to this section">#</a></h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Test</th><th>Fails if</th></tr></thead>
+  <tbody>
+    <tr><th>Themes</th><td>Any of the sixteen palettes drops below 4.5:1 for ordinary text or 3:1 for secondary text, the accent or a lane colour — computed with translucent tokens composited over what shows through them. Or if two families ever share an accent hue.</td></tr>
+    <tr><th>Settings sections</th><td>A chip is added without an explicit branch behind it. The screen used to have an <code>{:else}</code> catch-all, and one chip silently drew the wrong section for weeks.</td></tr>
+    <tr><th>Pull requests</th><td>A host's name appears anywhere in the screen, or more than one HTTP client exists, or one is declared outside <code>spagitty-core</code>, or it is reachable from more than one file.</td></tr>
+    <tr><th>Conflicts</th><td>Reading a conflicted repository modifies the index or leaves a lock behind.</td></tr>
+    <tr><th>All repositories</th><td>Reading a repository card modifies that repository's index.</td></tr>
+    <tr><th>Interactive rebase</th><td>The generated todo list disagrees with <code>git rev-list --reverse --no-merges</code>.</td></tr>
+    <tr><th>The working record</th><td>The index under <code>agile/</code> and the tree disagree — a missing row, a row with no document, a status that does not match the item, or a cited identifier that resolves to nothing.</td></tr>
+    <tr><th>Brand drift</th><td>The generated icons or brand collateral differ from what is committed.</td></tr>
+    <tr><th>Development styles</th><td>A stylesheet request arriving before its component makes the Svelte plugin's cold-cache fallback serve source as CSS. Build success alone does not test that request order.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="the-farms-own-tests">The farm's own tests<a class="anchor" href="#the-farms-own-tests" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>crates/spagitty-farm/tests/pipeline.rs</code> takes a task end to end against a real
+  repository, with a <strong>shell script standing in for the agent</strong> — which is the point. An
+  integration test that needed a model installed would run nowhere, and one that stubbed the process
+  boundary would not exercise the boundary. Everything else in the crate is pure and tested as a
+  table: the scheduler, the router, the dependency graph, the verifier's command composition, the
+  reviewer's second-agent rule, and the branch-name derivation.
+</p>
+
+<h2 id="the-fixture-repository-for-manual-sweeps">The fixture repository for manual sweeps<a class="anchor" href="#the-fixture-repository-for-manual-sweeps" aria-label="Link to this section">#</a></h2>
+
+<p>
+  The manual sweeps assume a repository with a merge, a branch that is merged and one that is not,
+  tags of both kinds, stash entries, a binary file, a dotfile, a deeply nested path, and a dirty
+  working copy with both staged and unstaged changes. Build it in a scratch directory —
+  <strong>never inside the repository</strong>:
+</p>
+
+<pre><code>FIX=/tmp/spagitty-fixture
+mkdir -p "$FIX" &amp;&amp; cd "$FIX"
+git init -q -b main
+git config user.name "Ada Lovelace"
+git config user.email ada@example.com
+git config commit.gpgsign false
+
+seq 1 40 | sed 's/^/line /' &gt; core.txt
+printf 'alpha\nbeta\ngamma\n' &gt; notes.md
+printf '# fixture\n' &gt; README.md
+mkdir -p src/deep/nested
+printf 'fn main() {}\n' &gt; src/deep/nested/main.rs
+printf '\x00\x01\x02binary\x00data\n' &gt; logo.bin
+printf '.cache/\n' &gt; .gitignore
+git add -A &amp;&amp; git commit -q -m "Initial import"
+
+for i in 1 2 3 4 5; do
+  printf 'entry %s\n' "$i" &gt;&gt; notes.md
+  git commit -q -am "Add note $i"
+done
+
+git switch -q -c feature/split-view
+sed -i 's/^line 3$/LINE THREE/' core.txt
+git commit -q -am "Rewrite line 3 in core"
+printf 'split view work\n' &gt; split.txt
+git add split.txt &amp;&amp; git commit -q -m "Start the split view"
+
+git switch -q main
+sed -i 's/^line 38$/LINE THIRTY-EIGHT/' core.txt
+git commit -q -am "Rewrite line 38 in core"
+git merge -q --no-ff feature/split-view -m "Merge feature/split-view"
+
+git switch -q -c chore/tooling main
+printf 'tooling\n' &gt; tools.txt
+git add tools.txt &amp;&amp; git commit -q -m "Add a tooling note"
+
+git switch -q main
+git branch merged/already-in-main main~1
+git tag -a v0.1.0 -m "First tag" main~2      # annotated
+git tag v0.2.0                                # lightweight
+
+printf 'work in progress\n' &gt;&gt; notes.md
+git stash push -q -u -m "wip on notes"
+printf 'second stash\n' &gt;&gt; README.md
+git stash push -q -m "wip on readme"
+
+printf 'uncommitted change\n' &gt;&gt; core.txt
+printf 'brand new file\n' &gt; untracked.txt
+printf 'staged change\n' &gt;&gt; notes.md
+git add notes.md</code></pre>
+
+<p>
+  That leaves 11 commits, 4 local branches, 2 tags, 2 stash entries, one staged file, one unstaged
+  file and one untracked file.
+</p>
+
+<h3 id="a-conflicted-fixture">A conflicted fixture<a class="anchor" href="#a-conflicted-fixture" aria-label="Link to this section">#</a></h3>
+
+<p>
+  The Conflicts screen needs a repository stopped mid-merge, which is a state the other screens should
+  not be tested against. Build it separately:
+</p>
+
+<pre><code>CFL=/tmp/spagitty-conflict
+mkdir -p "$CFL" &amp;&amp; cd "$CFL"
+git init -q -b main
+git config user.name "Ada Lovelace"
+git config user.email ada@example.com
+printf 'one\ntwo\nthree\n' &gt; shared.txt
+git add -A &amp;&amp; git commit -q -m "Base"
+
+git switch -q -c theirs
+printf 'one\nTHEIRS\nthree\n' &gt; shared.txt
+git commit -q -am "Their change"
+
+git switch -q main
+printf 'one\nOURS\nthree\n' &gt; shared.txt
+git commit -q -am "Our change"
+
+git merge theirs || true    # stops with a conflict, which is the point</code></pre>
+
+<h2 id="the-visual-sweep">The visual sweep<a class="anchor" href="#the-visual-sweep" aria-label="Link to this section">#</a></h2>
+
+<p>The application is driven for real, not screenshotted from a mock.</p>
+
+<pre><code>bun run tauri dev -- -- -- /tmp/spagitty-fixture</code></pre>
+
+<h3 id="driving-it-without-a-desk">Driving it without a desk<a class="anchor" href="#driving-it-without-a-desk" aria-label="Link to this section">#</a></h3>
+
+<p>
+  A human tester works the window directly. An automated sweep on a Wayland session cannot, for two
+  reasons that both look like application bugs and are not:
+</p>
+
+<ul>
+  <li>
+    <strong>The pointer cannot be moved.</strong> XWayland refuses <code>XWarpPointer</code>, so
+    <code>xdotool mousemove</code> silently does nothing and every click lands wherever the real
+    pointer happens to be.
+  </li>
+  <li>
+    <strong>An unfocused window never repaints.</strong> The compositor only paints what it shows, so
+    a capture returns whatever was in the backing store — usually the first frame, before the
+    stylesheet's custom properties were applied. It looks like a broken layout and is a stale image of
+    a correct one.
+  </li>
+</ul>
+
+<p>A plain X server has neither problem, and is also the polite option — nothing steals focus:</p>
+
+<pre><code>Xvfb :99 -screen 0 1600x1000x24 -nolisten tcp &amp;
+
+env -u WAYLAND_DISPLAY DISPLAY=:99 GDK_BACKEND=x11 \
+bun run tauri dev -- -- -- /tmp/spagitty-fixture</code></pre>
+
+<p>
+  <code>-u WAYLAND_DISPLAY</code> is the part that is easy to miss: with it set, GTK prefers the
+  Wayland backend and connects to the real session regardless of <code>DISPLAY</code>, and the window
+  opens on the desktop instead of the virtual screen.
+</p>
+
+<p>
+  Findings go into that item's sweep document under <code>agile/testing/</code> as filled-in results —
+  not into a commit message.
+</p>
+
+<h2 id="what-is-deliberately-not-tested">What is deliberately not tested<a class="anchor" href="#what-is-deliberately-not-tested" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li>
+    <strong>Drag gestures</strong>, on their own. Every reorder that can be dragged can also be done
+    from the keyboard, and the store owns the ordering — so the behaviour is tested through the
+    keyboard path and the component only reports intent.
+  </li>
+  <li>
+    <strong>The glass</strong>, visually. The arithmetic is pure and tested; the rendering is a WebKit
+    behaviour, and the measuring half deliberately does nothing when there is no lens — which is every
+    component test.
+  </li>
+  <li>
+    <strong>Whether a rebase will conflict.</strong> Knowing for certain means performing the merges,
+    which is execution. The screen says “may conflict”, in that word.
+  </li>
+</ul>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="ipc.html"><span class="pager-dir">Previous</span><span class="pager-title">IPC reference</span></a>
+<a class="pager-link next" href="ci.html"><span class="pager-dir">Next</span><span class="pager-title">CI/CD &amp; releases</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

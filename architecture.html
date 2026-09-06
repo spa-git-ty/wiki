@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture · Spagitty Wiki</title>
+<meta name="description" content="Three layers that each know nothing about the one above: the SvelteKit app, the Tauri shell, and the Rust crates. The seams, the boundaries, and why they hold.">
+<meta name="keywords" content="tauri architecture, rust git library, gitoxide, gix, sveltekit spa, ipc">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/architecture.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="Architecture · Spagitty Wiki">
+<meta property="og:description" content="Three layers that each know nothing about the one above: the SvelteKit app, the Tauri shell, and the Rust crates. The seams, the boundaries, and why they hold.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/architecture.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Architecture · Spagitty Wiki">
+<meta name="twitter:description" content="Three layers that each know nothing about the one above: the SvelteKit app, the Tauri shell, and the Rust crates. The seams, the boundaries, and why they hold.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "Architecture", "description": "Three layers that each know nothing about the one above: the SvelteKit app, the Tauri shell, and the Rust crates. The seams, the boundaries, and why they hold.", "url": "https://spa-git-ty.github.io/wiki/architecture.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "Architecture", "item": "https://spa-git-ty.github.io/wiki/architecture.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li class="here"><a href="architecture.html" aria-current="page">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-three-layers">The three layers</a></li>
+<li><a href="#the-rules-that-hold-the-seams">The rules that hold the seams</a></li>
+<li><a href="#crossing-the-boundary">Crossing the boundary</a></li>
+<li><a href="#the-git-binary-boundary">The git binary boundary</a></li>
+<li><a href="#what-ran-recorded-at-the-boundary">What ran, recorded at the boundary</a></li>
+<li><a href="#the-network-boundary">The network boundary</a></li>
+<li><a href="#two-things-the-layers-share">Two things the layers share</a></li>
+<li><a href="#data-flow-opening-a-repository">Data flow: opening a repository</a></li>
+<li><a href="#concurrency">Concurrency</a></li>
+<li><a href="#platform-facts-arranged-before-the-window">Platform facts, arranged before the window</a></li>
+<li><a href="#branching-and-releases">Branching and releases</a></li>
+<li><a href="#where-to-read-next">Where to read next</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How it is built</span>
+<h1>Architecture</h1>
+
+<p class="lede">
+  Three layers, and each knows nothing about the one above it. That is why the git core can be tested
+  without a window, and why a screen that looks broken is almost always a store bug rather than a Rust
+  one.
+</p>
+
+<h2 id="the-three-layers">The three layers<a class="anchor" href="#the-three-layers" aria-label="Link to this section">#</a></h2>
+
+<div class="layers">
+  <div class="layer">
+    <h3 id="src-sveltekit-spa-mode">src/ — SvelteKit, SPA mode<a class="anchor" href="#src-sveltekit-spa-mode" aria-label="Link to this section">#</a></h3>
+    <p>One store per screen. The only module that crosses into the backend is <code>src/lib/api.ts</code>.</p>
+  </div>
+  <div class="layer-arrow">↓ invoke</div>
+  <div class="layer">
+    <h3 id="src-tauri-the-tauri-shell">src-tauri/ — the Tauri shell<a class="anchor" href="#src-tauri-the-tauri-shell" aria-label="Link to this section">#</a></h3>
+    <p>Commands, background workers, the filesystem watcher, and the window. No git logic.</p>
+  </div>
+  <div class="layer-arrow">↓ calls</div>
+  <div class="layer">
+    <h3 id="cratesspagitty-core-git">crates/spagitty-core — git<a class="anchor" href="#cratesspagitty-core-git" aria-label="Link to this section">#</a></h3>
+    <p>Every git operation, through <code>gix</code> for reads and the <code>git</code> binary for writes. No Tauri types.</p>
+  </div>
+  <div class="layer">
+    <h3 id="cratesspagitty-farm-agents">crates/spagitty-farm — agents<a class="anchor" href="#cratesspagitty-farm-agents" aria-label="Link to this section">#</a></h3>
+    <p>The farm's control plane. Orchestrates and nothing else — and calls <code>spagitty-core</code> for every git operation rather than reimplementing one.</p>
+  </div>
+</div>
+
+<pre><code>src/                      SvelteKit SPA. One store per screen.
+  └── invoke ───────────► src-tauri/           Tauri commands, worker, watcher.
+                            ├── calls ───────► crates/spagitty-core/   Git, via gix + git.
+                            └── calls ───────► crates/spagitty-farm/   Orchestration: agents,
+                                                                       worktrees, verification,
+                                                                       review — and it calls
+                                                                       spagitty-core for git.</code></pre>
+
+<h2 id="the-rules-that-hold-the-seams">The rules that hold the seams<a class="anchor" href="#the-rules-that-hold-the-seams" aria-label="Link to this section">#</a></h2>
+
+<div class="rule">
+  <span class="note-label">Four rules, each load-bearing</span>
+  <p>
+    <strong>Only <code>src/lib/api.ts</code> calls <code>invoke</code>.</strong> A command rename is a
+    one-file change.<br>
+    <strong><code>spagitty-core</code> never imports Tauri.</strong> No window handles, no events, no
+    app state — so it compiles and is tested without a GUI.<br>
+    <strong>Only <code>shell.rs</code> spawns a process.</strong> One place knows what was executed.<br>
+    <strong>Only <code>forge/http.rs</code> makes a network request.</strong> One place knows what was
+    sent.
+  </p>
+</div>
+
+<h2 id="crossing-the-boundary">Crossing the boundary<a class="anchor" href="#crossing-the-boundary" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Types that cross to the frontend derive <code>Serialize</code> with
+  <code>#[serde(rename_all = "camelCase")]</code>, and are mirrored <strong>by hand</strong> in
+  <code>src/lib/types.ts</code>. The two are kept in step deliberately rather than generated, because
+  the wire shape is small and a generator would be more machinery than the problem needs.
+</p>
+
+<p>
+  Errors cross as plain strings. <code>Error</code>'s <code>Display</code> text is therefore
+  user-facing — plain, specific, no stack-trace jargon — and screens show that string directly rather
+  than substituting a message of their own.
+</p>
+
+<p>
+  Every command and every event is catalogued on the <a href="ipc.html">IPC reference</a>.
+</p>
+
+<h2 id="the-git-binary-boundary">The <code>git</code> binary boundary<a class="anchor" href="#the-git-binary-boundary" aria-label="Link to this section">#</a></h2>
+
+<p>The rule, in one sentence:</p>
+
+<blockquote>
+  <p>
+    If the operation mutates state that the wider git ecosystem also reads, or delegates to something
+    outside the repository, it shells out to <code>git</code>. Read-only history questions are answered
+    in-process with <code>gix</code>.
+  </p>
+</blockquote>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>In-process, with <code>gix</code></th><th>Through the <code>git</code> binary</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Log walking, refs, diffing, status, the index's conflict stages, stash entries read from the reflog, tags, remotes as configured, identity as resolved</td>
+      <td>Committing, staging, checkout, stash push, interactive rebase execution, hooks, LFS, submodule recursion, credential helpers, writing git config, cloning, and every operation in <code>ops.rs</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  The table in <code>shell.rs</code>'s own header is the authority and is extended in the same change
+  that adds an operation to it. <code>gix</code> is MIT/Apache-2.0, which links cleanly into a GPL-3
+  program.
+</p>
+
+<p>
+  <strong>One read breaks the rule</strong>, and it is written down rather than quietly done — blame.
+  The reason, and its end condition, are on <a href="core-crate.html#the-one-read-that-breaks-the-rule">the
+  core crate page</a>.
+</p>
+
+<h3 id="the-one-function-that-does-not-wait">The one function that does not wait<a class="anchor" href="#the-one-function-that-does-not-wait" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>shell::clone_start</code> is the only spawn that does not wait for git to finish: a clone runs
+  for minutes, reports progress as it goes, and has to be cancellable, so the caller owns the child
+  process. Everything else in the module is a command that ends.
+</p>
+
+<h2 id="what-ran-recorded-at-the-boundary">What ran, recorded at the boundary<a class="anchor" href="#what-ran-recorded-at-the-boundary" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Because there is one module that spawns, there is one place that knows what was executed.
+  <code>record.rs</code> holds it: a process-wide ring buffer of the last 200 executions, written by
+  <code>shell.rs</code> itself as each command finishes — argv, outcome, exit code, duration.
+</p>
+
+<p>
+  <strong>That location is the whole point of the feature.</strong> A screen composing its own “the
+  command behind this button” string would be describing what it <em>asked for</em>: it would not know
+  that a fetch carries <code>--prune --progress</code>, that a force push is
+  <code>--force-with-lease</code>, or that reverting a merge gained <code>-m 1</code> on the way down.
+  The record is written where the process is started, so it is evidence rather than a claim, and every
+  spawn goes through the same two functions so a new one cannot quietly skip it.
+</p>
+
+<ul>
+  <li><strong>Reads are absent, deliberately.</strong> Log walking, refs, diff and status are in-process and have no command line. Nothing is synthesised for them, and the panel says so.</li>
+  <li><strong>Credentials are removed on the way in, not on the way out.</strong> A clone URL's userinfo is stripped before the entry is stored.</li>
+</ul>
+
+<h2 id="the-network-boundary">The network boundary<a class="anchor" href="#the-network-boundary" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>forge/</code> is as narrow as <code>shell.rs</code>'s boundary and for the same reason.
+</p>
+
+<ul class="modules">
+  <li><span class="m-path">forge/http.rs</span><span class="m-what">The only file that may construct or use the HTTP client.</span></li>
+  <li><span class="m-path">forge/github.rs</span><span class="m-what">One GraphQL request per refresh — REST would need 1 + 3N calls for the same rows.</span></li>
+  <li><span class="m-path">forge/gitlab.rs</span><span class="m-what">GitLab merge requests, mapped onto the same contract.</span></li>
+  <li><span class="m-path">forge/bitbucket.rs</span><span class="m-what">Bitbucket Cloud pull requests, same contract.</span></li>
+  <li><span class="m-path">forge/review.rs</span><span class="m-what">A pull request's files, and the review somebody leaves on it.</span></li>
+  <li><span class="m-path">forge/keychain.rs</span><span class="m-what">The personal access token, in the OS keychain and never in a configuration file.</span></li>
+</ul>
+
+<h2 id="two-things-the-layers-share">Two things the layers share<a class="anchor" href="#two-things-the-layers-share" aria-label="Link to this section">#</a></h2>
+
+<h3 id="the-row-pitch-is-defined-twice-on-purpose">The row pitch is defined twice on purpose<a class="anchor" href="#the-row-pitch-is-defined-twice-on-purpose" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Lane elbows are described in <em>row units</em> in <code>crates/spagitty-core/src/graph.rs</code>;
+  the stylesheet needs the same number in CSS pixels from <code>src/lib/metrics.ts</code>, which is the
+  source of truth. Rather than let them drift, the frontend fetches the Rust value at boot through the
+  <code>metrics</code> command and logs an error if they disagree — and a Rust test reads the
+  TypeScript file and fails with both values named if the constants ever move apart.
+</p>
+
+<h3 id="structural-numbers-live-in-one-file">Structural numbers live in one file<a class="anchor" href="#structural-numbers-live-in-one-file" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>src/lib/metrics.ts</code> publishes them as CSS custom properties. There is no
+  <code>height: 26px</code> in any component, and no second <code>26</code> anywhere in the frontend.
+</p>
+
+<h2 id="data-flow-opening-a-repository">Data flow: opening a repository<a class="anchor" href="#data-flow-opening-a-repository" aria-label="Link to this section">#</a></h2>
+
+<ol>
+  <li><code>repo.open(path)</code> calls the <code>open_repo</code> command.</li>
+  <li>Rust opens the repository, builds the ref index, computes the cheap counts, spawns a graph worker and a filesystem watcher, and returns <code>{ info, counts, token }</code>.</li>
+  <li>The worker walks nothing yet. The graph store asks for rows with <code>graph_request(token, count)</code>.</li>
+  <li>Rows arrive as <code>graph-rows</code> events in batches; <code>graph-done</code> ends the walk.</li>
+  <li>Rows carrying a token other than the current one are dropped. That is how a superseded walk is discarded without cancellation races.</li>
+  <li>The watcher emits <code>repo-changed</code>. Refs moving debounces into a re-read and a re-walk; a worktree change re-reads the counts only.</li>
+</ol>
+
+<div class="note">
+  <span class="note-label">Why visibility is a root set, not a filter</span>
+  <p>
+    Hide, solo, smart visibility and pin-to-left all resolve to a <strong>root set for a fresh walk</strong>
+    rather than to a filter over rows the frontend already has. Filtering client-side would leave the
+    lanes drawing edges between commits that are no longer parent and child.
+  </p>
+</div>
+
+<h2 id="concurrency">Concurrency<a class="anchor" href="#concurrency" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Nothing polls. Long work runs on a thread that owns its own cancellation, and the webview is told
+  what changed.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Worker</th><th>Shape</th></tr></thead>
+  <tbody>
+    <tr><th>Graph</th><td>One thread per open repository. Walks history and emits batches.</td></tr>
+    <tr><th>Search</th><td>One thread per query. Starting one cancels the one before, and rows carrying a stale token are dropped.</td></tr>
+    <tr><th>Clone</th><td>One thread per clone, owning the <code>git</code> process — so cancelling is a signal rather than a request.</td></tr>
+    <tr><th>Network</th><td>Fetch and push, watched while they run rather than fire-and-wait.</td></tr>
+    <tr><th>Rebase</th><td>One thread, watching git rewrite history, with progress read from git's own state counters.</td></tr>
+    <tr><th>Watcher</th><td><code>notify</code> over the git directory, debounced.</td></tr>
+    <tr><th>Farm</th><td>One thread per running agent, with a process group (or a Windows job object) so stopping stops descendants too.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  The farm's Tauri commands are <code>#[tauri::command(async)]</code> rather than plain, because they
+  take locks that agent threads hold — and a blocking command runs on the thread that paints the
+  window.
+</p>
+
+<h2 id="platform-facts-arranged-before-the-window">Platform facts, arranged before the window<a class="anchor" href="#platform-facts-arranged-before-the-window" aria-label="Link to this section">#</a></h2>
+
+<p>
+  <code>platform.rs</code> is the other file that is not about git at all. It arranges the webview's
+  environment as the first statement of <code>run</code> — before the builder, and while the process is
+  still single-threaded, which is the only state in which setting an environment variable is sound.
+</p>
+
+<p>
+  It sets <code>WEBKIT_FORCE_COMPOSITING_MODE=1</code>, keeping the whole page on the GPU rather than
+  letting WebKitGTK fall back to software for the parts its heuristics misjudge. It deliberately does
+  <strong>not</strong> set <code>WEBKIT_DISABLE_DMABUF_RENDERER</code>, and that is a reversal of an
+  earlier decision — the reasoning is on <a href="tauri-layer.html#platform-facts">the Tauri layer</a>.
+</p>
+
+<h2 id="branching-and-releases">Branching and releases<a class="anchor" href="#branching-and-releases" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Git Flow: <code>main</code> and <code>dev</code> are protected, and work happens on
+  <code>feature/</code>, <code>task/</code>, <code>bugfix/</code>, <code>hotfix/</code> and
+  <code>release/</code> branches named after their work item. A pull request is the only path into a
+  protected branch. CI is six ordered gates — see <a href="ci.html">CI/CD &amp; releases</a>.
+</p>
+
+<h2 id="where-to-read-next">Where to read next<a class="anchor" href="#where-to-read-next" aria-label="Link to this section">#</a></h2>
+
+<ul class="cards">
+  <li><a class="card" href="code-map.html"><span class="card-title">Code map</span><p>Every directory and module, and where to start.</p></a></li>
+  <li><a class="card" href="core-crate.html"><span class="card-title">spagitty-core</span><p>Git, module by module.</p></a></li>
+  <li><a class="card" href="farm-crate.html"><span class="card-title">spagitty-farm</span><p>The farm's control plane.</p></a></li>
+  <li><a class="card" href="ipc.html"><span class="card-title">IPC reference</span><p>Every command and event.</p></a></li>
+</ul>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="privacy.html"><span class="pager-dir">Previous</span><span class="pager-title">Privacy &amp; security</span></a>
+<a class="pager-link next" href="code-map.html"><span class="pager-dir">Next</span><span class="pager-title">Code map</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

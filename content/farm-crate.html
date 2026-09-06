@@ -1,0 +1,326 @@
+<span class="eyebrow">How it is built</span>
+<h1><code>spagitty-farm</code></h1>
+
+<p class="lede">
+  The agent farm's control plane: a goal, the tasks it was cut into, and the agents working them. It
+  orchestrates and nothing else — every git operation it performs is <code>spagitty-core</code>'s, and
+  it holds no Tauri types either.
+</p>
+
+<p>
+  What the farm <em>does</em>, from the outside, is on <a href="farm.html">the agent farm</a>. This
+  page is the crate.
+</p>
+
+<div class="rule">
+  <span class="note-label">Three rules the crate is built around</span>
+  <p>
+    <strong>An agent saying “done” is not done.</strong> There is no transition from an agent's own
+    report to <code>Done</code>; verification and a review by a <em>different</em> agent are in the path
+    and cannot be skipped.<br>
+    <strong>Agents never talk to each other.</strong> Every handoff goes through the service, so there
+    is one audit trail and one place that decides what happens next.<br>
+    <strong>Nothing an agent does reaches the user's checkout.</strong> Every task runs in its own
+    worktree on its own branch.
+  </p>
+</div>
+
+<h2><code>model/</code> — the vocabulary</h2>
+
+<p>
+  Everything here is data. No process is spawned, no file is written and no git command runs from this
+  module tree — deliberately, because these types are what everything else agrees on.
+</p>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">model/farm.rs</span>
+    <span class="m-what">
+      <code>Farm</code>, <code>FarmStatus</code>, <code>Autonomy</code> (Manual, Assisted,
+      Semi-automatic, Automatic, Unattended) and <code>Permissions</code>. A farm belongs to a
+      repository, and there is one open at a time.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/goal.rs</span>
+    <span class="m-what">
+      One sentence from the user plus the constraints they want honoured. Separate from
+      <code>Farm</code> because a goal outlives a run.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/task.rs</span>
+    <span class="m-what">
+      <code>Task</code>, <code>TaskStatus</code> (11 states), <code>TaskKind</code> (9 kinds),
+      <code>TaskPriority</code> and <code>TaskOrigin</code> — the last being what lets the screen show
+      who asked for a task. A task is machine-readable on purpose: “never rely entirely on free-form
+      prose” is what makes the difference between a farm and a chat window.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/agent.rs</span>
+    <span class="m-what">
+      <code>AgentDefinition</code>, <code>AgentProvider</code>, <code>AgentCapability</code>,
+      <code>AgentRole</code>, <code>AgentInputMode</code>, <code>AgentAvailability</code>. An agent
+      must not be represented only by the path to its executable — the reason shows up the first time
+      two of them are the same binary with different arguments.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/run.rs</span>
+    <span class="m-what">
+      One execution of one agent against one task. A task can be run more than once — a review asking
+      for changes, a verification failure, a retry after a crash — so the <em>run</em> is the record,
+      not the task.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/handoff.rs</span>
+    <span class="m-what">
+      What an agent hands back, in a fenced structure every agent returns: status, a test report,
+      proposed tasks. Both halves matter — the structure, so Spagitty can act, and the prose, so a
+      person can read what happened.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">model/event.rs</span>
+    <span class="m-what">
+      <code>FarmEvent</code> — one internally-tagged enum rather than a Tauri event per kind, because
+      the screen keeps one activity list and one ordering. Sixteen variants, from
+      <code>TaskCreated</code> through <code>VerificationFinished</code> and <code>ReviewCompleted</code>
+      to <code>MergeCompleted</code>. <code>Recorded</code> wraps one with the time it happened, which
+      is what makes a log a log.
+    </span>
+  </li>
+</ul>
+
+<h2><code>agent/</code> — the providers</h2>
+
+<p>
+  Nothing above this module knows the name of a provider's executable or the shape of its command
+  line. Each adapter knows exactly one thing: how to invoke its own CLI without a terminal.
+</p>
+
+<ul class="modules">
+  <li><span class="m-path">agent/adapter.rs</span><span class="m-what">The one interface every provider implements — <code>AgentAdapter</code>, <code>AgentRunRequest</code>, <code>AgentCommand</code>. Synchronous, with the reasoning in its header.</span></li>
+  <li><span class="m-path">adapters/claude.rs</span><span class="m-what">Claude Code, in print mode: <code>claude -p &lt;prompt&gt;</code> runs the whole turn to completion with no terminal attached and writes the transcript to standard output.</span></li>
+  <li><span class="m-path">adapters/codex.rs</span><span class="m-what">Codex. <code>codex exec &lt;prompt&gt;</code> is the non-interactive subcommand; bare <code>codex</code> would open a session.</span></li>
+  <li><span class="m-path">adapters/cursor.rs</span><span class="m-what">Cursor. The command is <code>cursor-agent</code>, not <code>cursor</code> — that is the editor, and running it here would open a window.</span></li>
+  <li><span class="m-path">adapters/pi.rs</span><span class="m-what">Oh My Pi, which takes its prompt on standard input.</span></li>
+  <li><span class="m-path">adapters/custom.rs</span><span class="m-what">An agent Spagitty has never heard of. A list of future providers is a list of releases if each one needs an adapter, so a configured command with a prompt token is a settings change instead.</span></li>
+  <li><span class="m-path">agent/detector.rs</span><span class="m-what">Finding what is installed. Walks <code>PATH</code> itself rather than shelling out — with the reasoning in its header.</span></li>
+  <li><span class="m-path">agent/registry.rs</span><span class="m-what">The join between two things that must not be confused: what this machine <em>has</em>, and what the user has <em>said</em> about it.</span></li>
+</ul>
+
+<h2><code>workspace/</code> — where the work happens</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">workspace/branch.rs</span>
+    <span class="m-what">
+      Naming the branch and the directory a task works in —
+      <code>spagitty-farm/&lt;task&gt;/&lt;provider&gt;</code>. Both names are derived, never chosen,
+      and derived <em>here</em>, because the branch name is how the graph, the worktree list and the
+      Farm screen find each other. <code>task_of</code> and <code>provider_of</code> read it back;
+      a glob over <code>NAMESPACE</code> cleans up a farm without touching anything the user named.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">workspace/worktree.rs</span>
+    <span class="m-what">
+      A working tree of its own for every task. Two agents in one checkout is not a race that shows up
+      occasionally — it is one agent reading another's half-written file. <code>FARM_DIR</code> is
+      <code>.spagitty</code>, added to <code>.git/info/exclude</code> so a farm is never committed.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">workspace/lock.rs</span>
+    <span class="m-what">
+      Path-level leases. Worktrees stop two agents corrupting each other's files; leases stop two of
+      them <em>editing the same path</em> and producing changes that conflict on the way back.
+      <code>EVERYTHING</code> is the lease a task takes when it cannot say what it will touch.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">workspace/cleanup.rs</span>
+    <span class="m-what">
+      Told what is <em>left over</em> rather than which task to clean — a different question from
+      removing one worktree, and the one that matters after a crash.
+    </span>
+  </li>
+</ul>
+
+<h2><code>execution/</code> — running an agent</h2>
+
+<ul class="modules">
+  <li><span class="m-path">execution/process.rs</span><span class="m-what">One thread per run rather than an async runtime, with the reasoning in its header. <code>Cancellation</code>, <code>Session</code>, <code>Ended</code>.</span></li>
+  <li><span class="m-path">execution/tree.rs</span><span class="m-what">A process tree owned by one run. Windows starts the child suspended so nothing can escape before job assignment; Unix assigns a process group at spawn. Stopping a run stops its descendants.</span></li>
+  <li><span class="m-path">execution/log.rs</span><span class="m-what">The transcript on disk rather than a <code>String</code> in memory — which is what lets the drawer read a task's whole log back after the fact, and what stops a long session growing.</span></li>
+  <li><span class="m-path">execution/narrate.rs</span><span class="m-what">Turning what an agent prints into something a person can watch. <code>Verbatim</code> for providers that emit plain text, <code>ClaudeStream</code> for a structured one.</span></li>
+</ul>
+
+<h2><code>orchestrator/</code> — deciding what happens next</h2>
+
+<p>
+  The graph says what <em>could</em> run, the router says <em>who would do it</em>, and the scheduler
+  puts the two together with the farm's own limits. All three are pure.
+</p>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">orchestrator/dependency.rs</span>
+    <span class="m-what">
+      Tasks form a directed acyclic graph and whatever has no unfinished ancestors may run. That single
+      rule is the whole of parallel execution. <code>validate</code> refuses a cycle.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">orchestrator/router.rs</span>
+    <span class="m-what">
+      Rule-based and deliberately not clever: a task kind maps to a preferred role, the registry finds
+      an agent for that role, and if there is nobody the task goes to whoever can code. A scoring
+      function weighing historical success against cost against context fit is untestable until there
+      is history to test it with — and until then it is a random number generator with a good story.
+      <code>Scoreboard</code> is the observable half of the eventual answer: it counts what actually
+      happened per agent, which is a fact rather than an opinion. Nothing schedules on it yet.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">orchestrator/scheduler.rs</span>
+    <span class="m-what">
+      A <strong>pure function</strong>: farm plus leases in, a list of <code>Decision</code>s out. It
+      starts nothing, spawns nothing and writes nothing — which is why the interesting behaviour is
+      tested as a table. <code>why_waiting</code> is what a queued row shows instead of “Pending”.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">orchestrator/planner.rs</span>
+    <span class="m-what">
+      Turning a sentence into a plan, and a task into subtasks. <code>MAX_TASKS</code> and
+      <code>MAX_SUBTASKS</code> bound what a planner may produce; <code>adopt</code> and
+      <code>adopt_under</code> are how a proposed plan becomes real tasks once a person has said yes.
+    </span>
+  </li>
+</ul>
+
+<h2><code>verification/</code> — the gate</h2>
+
+<p>
+  The module that makes the difference between a farm and four terminal windows: no agent's own report
+  can move a task to <code>Done</code> without passing through here.
+</p>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">verification/verifier.rs</span>
+    <span class="m-what">
+      <code>commands_for</code> composes the farm's list with the task's — added by default, because
+      the common case is “the usual checks, plus this one”; replaced when the task says so, for a
+      subdirectory with its own toolchain. <code>run</code> executes them in order and stops at the
+      first failure: the cheap ones come first by convention, and running a twenty-minute suite after
+      the type check already failed spends time to learn nothing. The ones that did not run show as
+      pending, never as passed.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">verification/command.rs</span>
+    <span class="m-what">
+      One command, and how it is run. <strong>No shell</strong> — <code>split</code> turns a command
+      into argv, so a stray character cannot turn one command into three. <code>TIMEOUT</code> and
+      <code>OUTPUT_BYTES</code> bound how long a check may run and how much of its output is kept.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">verification/evidence.rs</span>
+    <span class="m-what">
+      Evidence is trusted only for a <em>committed, clean</em> task worktree. <code>CheckedCommit</code>
+      and <code>ReviewedCommit</code> tie a pass and an approval to the commit they were actually about,
+      so a later change cannot inherit them.
+    </span>
+  </li>
+</ul>
+
+<h2><code>review/</code> — a second opinion</h2>
+
+<ul class="modules">
+  <li>
+    <span class="m-path">review/reviewer.rs</span>
+    <span class="m-what">
+      One rule, and it is enforced here: <strong>the agent that implemented a task may not be the one
+      that approves it.</strong> A model asked to review its own work agrees with itself.
+      <code>check</code> is the assertion; <code>pick</code> chooses the reviewer.
+    </span>
+  </li>
+  <li>
+    <span class="m-path">review/decision.rs</span>
+    <span class="m-what">
+      <code>Decision</code>, <code>Issue</code>, <code>Severity</code> — parsed out of the reviewer's
+      transcript in the same way a handoff is, and for the same reason: a review that has to be read by
+      a person before anything can happen is a review that has not automated anything.
+    </span>
+  </li>
+</ul>
+
+<h2><code>persistence/</code></h2>
+
+<p>
+  The farm on disk, so a crash is an interruption rather than a loss. JSON files rather than SQLite,
+  and the reasoning is written down: SQLite is a C library, a licence to review, a build-time
+  dependency on every platform Spagitty ships to, and a schema-migration story for a desktop
+  application that currently has none — and the rest of Spagitty's own state is already JSON.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Need</th><th>How it is met without a database</th></tr></thead>
+  <tbody>
+    <tr><th>Transactional</th><td>Every write goes to a temporary file and is renamed over the target. <code>rename</code> within a directory is atomic on every filesystem Spagitty supports, so a farm is never half-written.</td></tr>
+    <tr><th>Crash recovery</th><td>The farm is written after every state change, so what is on disk is what was true at the last transition. The service reconciles it against the worktrees at startup.</td></tr>
+    <tr><th>History</th><td>Events append one JSON object per line — a format a crash mid-append cannot corrupt, because the partial last line is dropped on read. Trimmed to <code>MAX_EVENTS</code> (2,000) on write.</td></tr>
+    <tr><th>Querying</th><td>Not a real need at this size. A farm has a dozen tasks and a few hundred events, and the query is “show me all of them”.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  If a farm ever grows to the size where that hurts, the answer is a <code>Store</code> trait with a
+  second implementation — and the shape here is already that trait's shape.
+</p>
+
+<h2><code>policy.rs</code> and <code>context.rs</code></h2>
+
+<p>
+  <code>policy.rs</code> reads the repository's own rules. <code>AGENTS.md</code> is authoritative;
+  <code>CLAUDE.md</code>, <code>.cursor/rules</code> and
+  <code>.github/copilot-instructions.md</code> are read anyway, because a repository that already
+  wrote its rules down should not have to write them a third time to use a farm. They are concatenated
+  under headings naming their source and the agent is told which one governs — not merged cleverly,
+  because a merge that silently dropped a rule would be worse than a prompt containing two.
+  <code>MAX_BYTES</code> is 64 KB: a longer rules file is a manual, and pasting a manual into every
+  prompt is how a farm spends its budget on context rather than on work.
+</p>
+
+<p>
+  <code>context.rs</code> is what an agent is <em>told</em> — implementation, review, planning and
+  decomposition each build their own, and the module exists to enforce the rule about what may go into
+  one.
+</p>
+
+<h2><code>service.rs</code></h2>
+
+<p>
+  The API, and the only module that changes anything. Every other module in the crate is either data
+  or a pure function over data; this one holds the state, spawns the processes, writes the files and
+  moves tasks between statuses. <code>Observer</code> is how the Tauri layer receives events without
+  the crate knowing what a window is.
+</p>
+
+<h2>Testing it</h2>
+
+<p>
+  <code>tests/pipeline.rs</code> takes a task end to end against a real repository, with a shell script
+  standing in for the agent — which is the point: an integration test that needed a model installed
+  would run nowhere, and a test that stubbed the process boundary would not exercise the boundary. The
+  scheduler, the router, the dependency graph and the verifier are all pure, so their behaviour is
+  tested as tables rather than by running agents.
+</p>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contributing · Spagitty Wiki</title>
+<meta name="description" content="How to send a change: what to read first, how a branch is named, what a pull request needs, and the checks it has to clear.">
+<meta name="keywords" content="contributing, pull request, open source, gpl-3.0">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/contributing.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="Contributing · Spagitty Wiki">
+<meta property="og:description" content="How to send a change: what to read first, how a branch is named, what a pull request needs, and the checks it has to clear.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/contributing.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contributing · Spagitty Wiki">
+<meta name="twitter:description" content="How to send a change: what to read first, how a branch is named, what a pull request needs, and the checks it has to clear.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "Contributing", "description": "How to send a change: what to read first, how a branch is named, what a pull request needs, and the checks it has to clear.", "url": "https://spa-git-ty.github.io/wiki/contributing.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "Contributing", "item": "https://spa-git-ty.github.io/wiki/contributing.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li class="here"><a href="contributing.html" aria-current="page">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#read-these-first">Read these first</a></li>
+<li><a href="#licence-of-contributions">Licence of contributions</a></li>
+<li><a href="#developer-certificate-of-origin">Developer Certificate of Origin</a></li>
+<li><a href="#branch-and-commit">Branch and commit</a></li>
+<li><a href="#before-you-push">Before you push</a></li>
+<li><a href="#dependencies">Dependencies</a></li>
+<li><a href="#design-rules-that-are-not-negotiable">Design rules that are not negotiable</a></li>
+<li><a href="#code-style">Code style</a></li>
+<li><a href="#reporting-a-bug">Reporting a bug</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How we work</span>
+<h1>Contributing</h1>
+
+<p class="lede">
+  Bug reports and pull requests are welcome. This page is the short version; the authoritative text is
+  <code>CONTRIBUTING.md</code> in the repository.
+</p>
+
+<div class="btn-row">
+  <a class="btn primary" href="https://github.com/spa-git-ty/spagitty" rel="noopener">The repository</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/issues" rel="noopener">Issues</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/blob/main/CONTRIBUTING.md" rel="noopener">CONTRIBUTING.md</a>
+</div>
+
+<h2 id="read-these-first">Read these first<a class="anchor" href="#read-these-first" aria-label="Link to this section">#</a></h2>
+
+<ol>
+  <li><a href="architecture.html">Architecture</a> — the three layers and the rules that hold their seams.</li>
+  <li><a href="process.html">How we work</a> — the working record, and why a change starts with an item.</li>
+  <li><a href="testing.html">Testing</a> — what is checked and how.</li>
+  <li><a href="ci.html">CI/CD &amp; releases</a> — the gates your change has to clear.</li>
+</ol>
+
+<h2 id="licence-of-contributions">Licence of contributions<a class="anchor" href="#licence-of-contributions" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Spagitty is <strong>GPL-3.0-or-later</strong>. By contributing you agree that your contribution is
+  licensed under GPL-3.0-or-later. There is no CLA and no copyright assignment — you keep the
+  copyright to your work.
+</p>
+
+<p>Every new source file gets an SPDX header as its first line:</p>
+
+<pre><code>// SPDX-License-Identifier: GPL-3.0-or-later      &lt;!-- Rust, TypeScript --&gt;
+&lt;!-- SPDX-License-Identifier: GPL-3.0-or-later --&gt;  &lt;!-- Svelte, Markdown --&gt;</code></pre>
+
+<h2 id="developer-certificate-of-origin">Developer Certificate of Origin<a class="anchor" href="#developer-certificate-of-origin" aria-label="Link to this section">#</a></h2>
+
+<p>
+  We use the <a href="https://developercertificate.org/" rel="noopener">DCO</a> rather than a CLA. Sign
+  off every commit:
+</p>
+
+<pre><code>git commit -s</code></pre>
+
+<p>
+  That appends <code>Signed-off-by: Your Name &lt;you@example.com&gt;</code>. The name and email must
+  be real and must match the commit author.
+</p>
+
+<h2 id="branch-and-commit">Branch and commit<a class="anchor" href="#branch-and-commit" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li>
+    Every branch carries a work item id from <code>agile/</code>:
+    <code>feature/FEAT-###-…</code>, <code>task/TASK-###-…</code>, <code>bugfix/BUG-###-…</code>. If
+    your change does not have an item yet, open one — it is a short document, and it is what makes the
+    record readable a year later.
+  </li>
+  <li>A pull request is the only path into <code>main</code> or <code>dev</code>.</li>
+  <li>
+    A changelog entry goes under <code>## [Unreleased]</code> in the <em>same change</em> as the work.
+    Gate 6 reads that file for release notes and refuses to release without a section.
+  </li>
+  <li>
+    Update the documentation your change affects, in the same commit. A section describing something
+    that no longer exists is a defect.
+  </li>
+</ul>
+
+<h2 id="before-you-push">Before you push<a class="anchor" href="#before-you-push" aria-label="Link to this section">#</a></h2>
+
+<pre><code>cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+bun run check
+bun run coverage</code></pre>
+
+<p>
+  The full local gate sequence, including licences and advisories, is on
+  <a href="ci.html#running-the-gates-locally">CI/CD &amp; releases</a>.
+</p>
+
+<h2 id="dependencies">Dependencies<a class="anchor" href="#dependencies" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Check the licence before adding one. <strong>Acceptable:</strong> MIT, Apache-2.0, BSD, ISC,
+  MPL-2.0, LGPL, GPL-2.0-with-linking-exception, CC0, OFL (fonts).
+  <strong>Not acceptable:</strong> proprietary, SSPL, BSL, or any “source available” non-free licence.
+  Apache-2.0-only code must not be linked into GPL-2.0-only code.
+</p>
+
+<p>
+  A new dependency has to show up in the generated third-party licence list, and it has to be
+  justified in the change that adds it.
+</p>
+
+<h2 id="design-rules-that-are-not-negotiable">Design rules that are not negotiable<a class="anchor" href="#design-rules-that-are-not-negotiable" aria-label="Link to this section">#</a></h2>
+
+<p>These come from the design handoff and hold across every screen.</p>
+
+<ul>
+  <li>
+    <strong>Standard git terminology only.</strong> fetch, push, stage, hunk, <code>stash@{n}</code>,
+    pick/squash/reword/drop, ours/theirs. No invented vocabulary, no friendly renaming of git
+    concepts.
+  </li>
+  <li>
+    <strong>Structural numbers are shared constants, never literals.</strong> The commit row pitch, the
+    rail width, the detail panel width and the lane pitch each have exactly one definition. If you find
+    yourself typing <code>26</code>, use the constant.
+  </li>
+  <li><strong>Never block on walking the whole history.</strong> The graph streams in windows and paints progressively.</li>
+  <li>
+    <strong>Destructive actions are reversible.</strong> Rebase previews before executing; conflict
+    resolution writes nothing until finished; Undo maps to a reflog restore.
+  </li>
+  <li><strong>Nothing leaves the machine.</strong> Repositories are read straight from disk; credentials go in the OS keychain.</li>
+  <li><strong>Never use the Git logo or Git orange.</strong> See <a href="branding.html">brand &amp; identity</a>.</li>
+</ul>
+
+<h2 id="code-style">Code style<a class="anchor" href="#code-style" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li><strong>Rust:</strong> <code>cargo fmt</code> and <code>cargo clippy</code> clean.</li>
+  <li><strong>Frontend:</strong> <code>bun run check</code> clean.</li>
+  <li>
+    <strong>Do not reimplement what <code>shell.rs</code> should shell out to <code>git</code> for</strong>
+    — interactive rebase execution, hooks, LFS, submodule recursion, credential helpers. If you need a
+    new one of those, add it there with a comment explaining why <code>gix</code> is not the right
+    tool, and extend the boundary table in the same change.
+  </li>
+  <li>
+    <strong>Do not reformat files you are not otherwise changing.</strong> A diff that is 90%
+    whitespace is a diff nobody can review.
+  </li>
+  <li>
+    <strong>Write the <em>why</em> in the module header.</strong> A comment restating the signature is
+    noise; the reasoning behind a choice is the thing that cannot be recovered from the code.
+  </li>
+</ul>
+
+<h2 id="reporting-a-bug">Reporting a bug<a class="anchor" href="#reporting-a-bug" aria-label="Link to this section">#</a></h2>
+
+<p>Useful reports say:</p>
+
+<ul>
+  <li>Which screen, by its code if you know it (<code>1A</code>, <code>1H</code>, …).</li>
+  <li>Your platform and Spagitty version — <em>Settings → License</em> has both, along with the exact commit the build came from.</li>
+  <li>What you did, what happened, and what you expected instead.</li>
+  <li>
+    If it involves a git operation, what <em>Show the git command behind each action</em> recorded.
+    That drawer shows the actual argv, not a reconstruction.
+  </li>
+</ul>
+
+<p>
+  For a suspected vulnerability, describe the class of problem rather than posting a working exploit.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="branding.html"><span class="pager-dir">Previous</span><span class="pager-title">Brand &amp; identity</span></a>
+<a class="pager-link next" href="releases.html"><span class="pager-dir">Next</span><span class="pager-title">Release history</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

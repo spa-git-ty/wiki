@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How We Work · Spagitty Wiki</title>
+<meta name="description" content="The working record: items, plans and test sweeps under `agile/`, the branching model, and the standing rules a change is written against.">
+<meta name="keywords" content="working record, git flow, work items, amendments, agile">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/process.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="How We Work · Spagitty Wiki">
+<meta property="og:description" content="The working record: items, plans and test sweeps under `agile/`, the branching model, and the standing rules a change is written against.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/process.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How We Work · Spagitty Wiki">
+<meta name="twitter:description" content="The working record: items, plans and test sweeps under `agile/`, the branching model, and the standing rules a change is written against.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "How We Work", "description": "The working record: items, plans and test sweeps under `agile/`, the branching model, and the standing rules a change is written against.", "url": "https://spa-git-ty.github.io/wiki/process.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "How we work", "item": "https://spa-git-ty.github.io/wiki/process.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li class="here"><a href="process.html" aria-current="page">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-working-record">The working record</a></li>
+<li><a href="#branching">Branching</a></li>
+<li><a href="#the-standing-rules">The standing rules</a></li>
+<li><a href="#how-a-change-is-written">How a change is written</a></li>
+<li><a href="#reasoning-lives-next-to-the-code">Reasoning lives next to the code</a></li>
+<li><a href="#defects-kept-rather-than-tidied-away">Defects, kept rather than tidied away</a></li>
+<li><a href="#design-rules-that-are-not-negotiable">Design rules that are not negotiable</a></li>
+<li><a href="#where-the-later-screens-came-from">Where the later screens came from</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">How we work</span>
+<h1>How we work</h1>
+
+<p class="lede">
+  The product code is one half of this repository. The other half is the working record — why a change
+  existed, what was verified, and what broke along the way — kept in the repository rather than in
+  someone's head.
+</p>
+
+<h2 id="the-working-record">The working record<a class="anchor" href="#the-working-record" aria-label="Link to this section">#</a></h2>
+
+<pre><code>agile/
+  items/       work items: features, tasks, bugs
+  plans/       one implementation plan per work item
+  testing/     test plans per work item — automated and manual sweep
+  roadmap.md   the order the outstanding work is meant to be taken in</code></pre>
+
+<p>
+  Identifiers are <code>FEAT-###</code>, <code>TASK-###</code> and <code>BUG-###</code>, assigned in
+  sequence and never reused. The identifier is the join key: an item's four documents are
+</p>
+
+<pre><code>agile/items/FEAT-004-branches.md
+agile/plans/FEAT-004-plan.md
+agile/testing/FEAT-004-automated.md
+agile/testing/FEAT-004-sweep.md</code></pre>
+
+<p>and its branch is <code>feature/FEAT-004-branches</code>.</p>
+
+<p>
+  Backlog items — recorded but not started — carry an item document only. Their plan and testing
+  documents are written when the work begins, since a plan written before the work is a guess rather
+  than a record.
+</p>
+
+<h3 id="status-has-five-words-and-only-five">Status has five words, and only five<a class="anchor" href="#status-has-five-words-and-only-five" aria-label="Link to this section">#</a></h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Word</th><th>Means</th></tr></thead>
+  <tbody>
+    <tr><th><code>Done</code></th><td>Built and merged.</td></tr>
+    <tr><th><code>Fixed</code></th><td>A bug, fixed and merged.</td></tr>
+    <tr><th><code>Partial</code></th><td>Some of it is built and merged and some is not. The item says which.</td></tr>
+    <tr><th><code>Open</code></th><td>Being worked on now.</td></tr>
+    <tr><th><code>Backlog</code></th><td>Recorded, not started. Item document only.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  <code>Partial</code> exists because the record had no word for it and used <code>Backlog</code>
+  instead — which sent readers off to write code that was already there.
+</p>
+
+<h3 id="the-index-is-checked-by-a-test">The index is checked by a test<a class="anchor" href="#the-index-is-checked-by-a-test" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>tools/record.test.ts</code> runs in the ordinary suite and fails if the index and the tree
+  disagree: a missing row, a row with no document, a status that does not match the item, a cited
+  identifier that resolves to nothing, or a built item whose missing documents are not recorded. Drift
+  is a test failure rather than an audit.
+</p>
+
+<h2 id="branching">Branching<a class="anchor" href="#branching" aria-label="Link to this section">#</a></h2>
+
+<p>Git Flow, with the work item in the branch name.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Branch</th><th>For</th></tr></thead>
+  <tbody>
+    <tr><th><code>main</code></th><td>Protected. A shipping merge here publishes a release.</td></tr>
+    <tr><th><code>dev</code></th><td>Protected. Gates 1–4 run; alphas are cut from it by hand.</td></tr>
+    <tr><th><code>feature/FEAT-###-…</code></th><td>A new capability.</td></tr>
+    <tr><th><code>task/TASK-###-…</code></th><td>Work that is not a user-visible feature — tooling, records, refactors.</td></tr>
+    <tr><th><code>bugfix/BUG-###-…</code></th><td>A defect.</td></tr>
+    <tr><th><code>hotfix/…</code> · <code>release/…</code></th><td>Urgent fixes, and release preparation.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  A pull request is the only path into a protected branch. Commits are signed off, and a changelog
+  entry goes under <code>## [Unreleased]</code> in the same change as the work.
+</p>
+
+<h2 id="the-standing-rules">The standing rules<a class="anchor" href="#the-standing-rules" aria-label="Link to this section">#</a></h2>
+
+<p>
+  The binding rules are an <strong>amendments book</strong> shared across the author's projects and
+  kept outside this repository, so the rules are edited once rather than copied per project.
+  <code>docs/AMENDMENTS.md</code> is a pointer to it and says so explicitly — it is not a second copy,
+  and a summary does not replace the book.
+</p>
+
+<p>The ones that show up most in this repository, in effect:</p>
+
+<ul>
+  <li><strong>The working record is required.</strong> Every change has an item, and the item's status there is authoritative.</li>
+  <li><strong>A document that names a path which no longer exists is a defect</strong>, and has to be verified rather than trusted. That rule was applied to the pointer file itself, which for a while named a directory that did not exist on any machine — so the one thing it was for, telling a newcomer where the rules are, it did not do.</li>
+  <li><strong>A pull request is the only path into a protected branch.</strong></li>
+  <li><strong>A release's notes are its changelog section</strong>, written with the work rather than generated afterwards.</li>
+</ul>
+
+<h2 id="how-a-change-is-written">How a change is written<a class="anchor" href="#how-a-change-is-written" aria-label="Link to this section">#</a></h2>
+
+<ol>
+  <li><strong>An item</strong>, with what it is for and how it will be known to be done.</li>
+  <li><strong>A plan</strong>, written when the work starts.</li>
+  <li><strong>The change</strong>, on a branch named after the item, with the documentation it affects updated in the same commit — a section describing something that no longer exists is a defect.</li>
+  <li><strong>Tests</strong>, and a changelog entry under <code>Unreleased</code>.</li>
+  <li><strong>Gates 1 to 3 locally</strong>, then a pull request, where gates 1 to 4 are read.</li>
+  <li><strong>A sweep document</strong>, filled in with results rather than intentions.</li>
+</ol>
+
+<h2 id="reasoning-lives-next-to-the-code">Reasoning lives next to the code<a class="anchor" href="#reasoning-lives-next-to-the-code" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Module headers in this repository carry the <em>why</em>, not a restatement of the signature. That is
+  a deliberate convention, and it is why the crate references on this wiki can be as specific as they
+  are: the reasoning was already written down, in the file it belongs to.
+</p>
+
+<blockquote>
+  <p>
+    “A search is the same revision walk the graph does, with a predicate and without lanes. It is not
+    a second traversal of history.”
+  </p>
+</blockquote>
+
+<p>
+  Where a decision was <em>reversed</em>, both halves stay — the original reasoning and what turned out
+  to be wrong with it. The Linux rendering path is the clearest example: a workaround that fixed a
+  blank window on some hosts cost every other host the GPU path, and the header now says both things.
+</p>
+
+<h2 id="defects-kept-rather-than-tidied-away">Defects, kept rather than tidied away<a class="anchor" href="#defects-kept-rather-than-tidied-away" aria-label="Link to this section">#</a></h2>
+
+<p>
+  The record includes what broke. Not as a confession — as the useful half. A few that shaped the
+  code:
+</p>
+
+<ul>
+  <li>
+    <strong>A Settings chip that opened the wrong section</strong>, because eight chips fed seven
+    branches and an <code>{:else}</code> catch-all hid the miss. The catch-all is gone and a test now
+    fails if a chip is added without a branch.
+  </li>
+  <li>
+    <strong>An External Tools section themed against CSS tokens that did not exist</strong>, so every
+    palette but one fell through to a hard-coded dark fallback — and nothing failed, because the CSS
+    was valid.
+  </li>
+  <li>
+    <strong>A release lane that tagged a version and then could not attach its assets</strong>, because
+    a bundle tree was uploaded whole and one icon appeared twice.
+  </li>
+  <li>
+    <strong>A release that halted rather than broke</strong>: the runner had no git identity, so
+    <code>git tag -a</code> refused with <code>fatal: empty ident name</code>, nothing was tagged and
+    nothing was published. The fix set the bot identity and, with it, moved the notes off generated
+    text and onto the changelog.
+  </li>
+  <li>
+    <strong>A coverage floor the delight layer briefly dropped under</strong>, recovered by mounting
+    the surfaces that had been left at 0% branches.
+  </li>
+  <li>
+    <strong>Eight themes wearing one accent</strong>, because “the brand runs through the UI” was
+    applied literally. Each family accents in its own hue now, and a test fails if two ever share one.
+  </li>
+  <li>
+    <strong>A rail whose loudest pixel was a filled button offering to replace the repository you were
+    working in</strong> — above every screen, wanted approximately never.
+  </li>
+  <li>
+    <strong>A lens that wiped the window.</strong> The glass filter's region was measured in CSS pixels
+    and consumed as device pixels, so on any display whose ratio was not 1, most of the window stopped
+    painting for as long as a menu was open. It is a fraction of the box now, which cannot be read in
+    the wrong unit.
+  </li>
+  <li>
+    <strong>Two copies of a constant that drifted</strong> while doc comments on both sides claimed a
+    test was holding them together. There was no such test. There is now.
+  </li>
+</ul>
+
+<p>The through-line: the leverage was real, and the verification was never optional.</p>
+
+<h2 id="design-rules-that-are-not-negotiable">Design rules that are not negotiable<a class="anchor" href="#design-rules-that-are-not-negotiable" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li>
+    <strong>Standard git terminology only.</strong> fetch, push, stage, hunk, <code>stash@{n}</code>,
+    pick/squash/reword/drop, ours/theirs. No invented vocabulary, no friendly renaming of git
+    concepts.
+  </li>
+  <li>
+    <strong>Structural numbers are shared constants, never literals.</strong> If you find yourself
+    typing <code>26</code>, use the constant.
+  </li>
+  <li><strong>Never block on walking the whole history.</strong> The graph streams in windows and paints progressively.</li>
+  <li><strong>Destructive actions are reversible</strong>, and the confirmation says what comes back.</li>
+  <li><strong>Nothing leaves the machine.</strong> Repositories are read straight from disk; credentials go in the OS keychain.</li>
+  <li><strong>Never use the Git logo or Git orange.</strong> Spagitty is independent. See <a href="branding.html">brand &amp; identity</a>.</li>
+</ul>
+
+<h2 id="where-the-later-screens-came-from">Where the later screens came from<a class="anchor" href="#where-the-later-screens-came-from" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Screens 1A to 1L are the design handoff. 1M (Reflog) and 1N (Tags) came out of a gap analysis
+  against an established client rather than the design, and they are numbered <em>after</em> the
+  handoff's run rather than inserted into it — so a screen code still says where that screen came from.
+  1P (Badges) came from neither. That analysis is kept in the repository alongside a reference
+  document recording what the commit graph deliberately will <strong>not</strong> do: no dragging
+  commits, no inline message editing, no manual lane layout, no independent graph zoom.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="ci.html"><span class="pager-dir">Previous</span><span class="pager-title">CI/CD &amp; releases</span></a>
+<a class="pager-link next" href="branding.html"><span class="pager-dir">Next</span><span class="pager-title">Brand &amp; identity</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

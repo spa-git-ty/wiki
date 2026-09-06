@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Spagitty Is · Spagitty Wiki</title>
+<meta name="description" content="The problem Spagitty solves, the principles it is built on, what it deliberately is not, and where the name comes from.">
+<meta name="keywords" content="local-first git client, spaghetti git, git gui, agents commit, open source git client">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/overview.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="What Spagitty Is · Spagitty Wiki">
+<meta property="og:description" content="The problem Spagitty solves, the principles it is built on, what it deliberately is not, and where the name comes from.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/overview.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="What Spagitty Is · Spagitty Wiki">
+<meta name="twitter:description" content="The problem Spagitty solves, the principles it is built on, what it deliberately is not, and where the name comes from.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "What Spagitty Is", "description": "The problem Spagitty solves, the principles it is built on, what it deliberately is not, and where the name comes from.", "url": "https://spa-git-ty.github.io/wiki/overview.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "What Spagitty is", "item": "https://spa-git-ty.github.io/wiki/overview.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li class="here"><a href="overview.html" aria-current="page">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li><a href="farm.html">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#the-problem">The problem</a></li>
+<li><a href="#what-it-does">What it does</a></li>
+<li><a href="#the-principles">The principles</a></li>
+<li><a href="#what-spagitty-is-not">What Spagitty is not</a></li>
+<li><a href="#who-it-is-for">Who it is for</a></li>
+<li><a href="#the-stack-briefly">The stack, briefly</a></li>
+<li><a href="#licence">Licence</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">Start here</span>
+<h1>What Spagitty is</h1>
+
+<p class="lede">
+  A local-first desktop Git client for repositories where people and coding agents commit side by
+  side, and the gateway to a Git-managed agent farm. It runs on Linux, macOS and Windows, it is free
+  software under the GPL, and it has no account, no server and no model of its own.
+</p>
+
+<h2 id="the-problem">The problem<a class="anchor" href="#the-problem" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Work arrives faster than it can be read. A repository where several people and several coding
+  agents are all committing produces history at a rate that outstrips anybody's ability to follow it
+  in a terminal, and the tools most of us reach for were designed for a slower shape of work — one
+  author, one branch at a time, a review that happens once at the end.
+</p>
+
+<p>
+  What breaks first is not the writing. It is the <em>reading</em>: what happened, who did it,
+  whether it was checked, and what to do next. A repository without a readable history is a plate of
+  tangled pasta. Spagitty straightens the strands.
+</p>
+
+<h3 id="where-the-name-comes-from">Where the name comes from<a class="anchor" href="#where-the-name-comes-from" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <strong>Spagitty</strong> — <em>spa-gi-ty</em> — is spaghetti plus Git. It is also the mark: four
+  dark strands that begin tangled at the top of an amber plate and resolve into straight, parallel
+  paths below. The metaphor is kept literal on purpose. Tangled and straightened, pasta and strands.
+  We do not extend it into chefs and kitchens in product copy; that register belongs to the
+  <a href="features.html#the-delight-layer">delight layer</a>, where it is deliberately a joke.
+</p>
+
+<h2 id="what-it-does">What it does<a class="anchor" href="#what-it-does" aria-label="Link to this section">#</a></h2>
+
+<p>Two things, and the second is built on the first.</p>
+
+<h3 id="it-reads-reviews-and-lands-the-work">It reads, reviews and lands the work<a class="anchor" href="#it-reads-reviews-and-lands-the-work" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Spagitty is a full desktop Git client: a lane graph of history with hide, solo, pin and smart
+  visibility; a working copy that stages by file, hunk or line; diffs with syntax highlighting,
+  image comparison and binary size deltas; file history with rename following and a blame gutter;
+  branches, tags, stashes, the reflog, worktrees and submodules as first-class screens; interactive
+  rebase with a preview before anything runs; in-app conflict resolution or your own merge tool; and
+  pull requests read, reviewed, created and merged against GitHub, GitLab and Bitbucket Cloud.
+</p>
+
+<p>See the <a href="features.html">feature reference</a> for the whole list.</p>
+
+<h3 id="it-runs-the-agents">It runs the agents<a class="anchor" href="#it-runs-the-agents" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Set a goal. Spagitty cuts it into tasks and hands them to the coding agents already installed on
+  your machine, up to eight at a time, each on its own branch in its own worktree. Verification runs
+  your repository's own commands in the task's worktree. Review is performed by a
+  <em>different</em> agent than the one that wrote the change. You choose where you stand, from
+  <em>Manual</em> — nothing runs by itself — to <em>Unattended</em>.
+</p>
+
+<p>The whole feature is written up on <a href="farm.html">the agent farm</a>.</p>
+
+<h2 id="the-principles">The principles<a class="anchor" href="#the-principles" aria-label="Link to this section">#</a></h2>
+
+<h3 id="local-first-and-checkably-so">Local-first, and checkably so<a class="anchor" href="#local-first-and-checkably-so" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Repositories stay on disk. There is no account step, no cloud to log into, and no server of ours
+  in any path. The only network boundary in the whole workspace is one file —
+  <code>crates/spagitty-core/src/forge/http.rs</code> — talking to the forges you connected, when
+  you ask it to. A test asserts that exactly one HTTP client exists, that it is declared only in
+  that crate, and that the webview links none at all.
+</p>
+
+<h3 id="nothing-here-is-a-model">Nothing here is a model<a class="anchor" href="#nothing-here-is-a-model" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Spagitty ships no model and no API key. The agents it runs are programs already on your machine,
+  invoked as you, with your credentials. We never describe Spagitty as “AI-powered”, because that
+  trades away the one thing a local-first tool has: you can tell what it is doing.
+</p>
+
+<h3 id="an-agents-own-report-is-not-evidence">An agent's own report is not evidence<a class="anchor" href="#an-agents-own-report-is-not-evidence" aria-label="Link to this section">#</a></h3>
+
+<p>
+  The farm's status machine has no edge from “the agent said it finished” to <code>Done</code>.
+  Verification runs the repository's own commands; review is performed by a second agent; and every
+  handoff goes through Spagitty rather than between agents, so there is one audit trail and one place
+  that decides what happens next.
+</p>
+
+<h3 id="say-what-a-thing-does-including-when-it-does-nothing">Say what a thing does, including when it does nothing<a class="anchor" href="#say-what-a-thing-does-including-when-it-does-nothing" aria-label="Link to this section">#</a></h3>
+
+<p>
+  A toggle that is not honoured yet names the item that will honour it. A screen that cannot do
+  something says so where you would look for it, rather than failing silently when clicked. “May
+  conflict” on the rebase preview uses the word <em>may</em>, because knowing for certain would mean
+  performing the merges — and claiming a clean result we cannot prove would be the worse lie.
+</p>
+
+<h3 id="git-is-the-authority-not-our-preferences">Git is the authority, not our preferences<a class="anchor" href="#git-is-the-authority-not-our-preferences" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Whether a commit will be signed is read from <code>commit.gpgsign</code> and its neighbours, not
+  from a Spagitty setting pretending to be that. Branch names are validated by git, because a second
+  implementation of <code>check-ref-format</code> could only disagree with it. Clearing an identity
+  field runs <code>git config --unset</code> rather than writing an empty string, because a
+  configured empty email is a different thing from an unset one.
+</p>
+
+<h3 id="the-destructive-thing-is-the-one-that-asks">The destructive thing is the one that asks<a class="anchor" href="#the-destructive-thing-is-the-one-that-asks" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Staging, unstaging and committing only move work forward, so they do not interrupt. Discard,
+  delete, reset <code>--hard</code>, force push and rebase do, and the confirmation says what
+  actually goes away — including, where it applies, the exact command that brings it back.
+</p>
+
+<h2 id="what-spagitty-is-not">What Spagitty is not<a class="anchor" href="#what-spagitty-is-not" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Not this</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><th>A hosted forge</th><td>GitHub, GitLab and Bitbucket stay outside. Spagitty reads and writes to them through a token you issue.</td></tr>
+    <tr><th>A CI system</th><td>Verification runs your repository's commands locally, in a task's worktree. It is a gate, not a pipeline.</td></tr>
+    <tr><th>A model, or a wrapper around one</th><td>No inference happens in Spagitty. The agents are separate programs you installed.</td></tr>
+    <tr><th>A productivity leaderboard</th><td>The badge screen ranks agents by first-pass rate in <em>this</em> repository, never by volume, and never puts a human on the same table.</td></tr>
+    <tr><th>A telemetry surface</th><td>Nothing is counted, sampled or sent. There is nowhere for it to go.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="who-it-is-for">Who it is for<a class="anchor" href="#who-it-is-for" aria-label="Link to this section">#</a></h2>
+
+<ul>
+  <li>
+    <strong>People who review more than they write.</strong> The graph is the primary navigation
+    surface rather than a read-only report — almost every operation is one right-click away from a
+    commit or a branch label.
+  </li>
+  <li>
+    <strong>People supervising coding agents.</strong> The farm is a supervision screen: a plan on
+    the left, the selected task in the middle, and what just happened along the bottom, so
+    supervising does not mean navigating.
+  </li>
+  <li>
+    <strong>People learning how a desktop Git application is put together.</strong> The
+    <a href="architecture.html">architecture</a> is three layers with hard seams, and the
+    <a href="process.html">working record</a> keeps the reasoning — including the defects found
+    along the way — rather than only the result.
+  </li>
+</ul>
+
+<h2 id="the-stack-briefly">The stack, briefly<a class="anchor" href="#the-stack-briefly" aria-label="Link to this section">#</a></h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Layer</th><th>Built with</th></tr></thead>
+  <tbody>
+    <tr><th>Window &amp; shell</th><td>Tauri 2 — WebKitGTK on Linux, WKWebView on macOS, WebView2 on Windows</td></tr>
+    <tr><th>Interface</th><td>SvelteKit 2 in SPA mode, Svelte 5 runes, TypeScript, Bun</td></tr>
+    <tr><th>Git</th><td>Rust, with <a href="https://github.com/GitoxideLabs/gitoxide" rel="noopener">gitoxide (<code>gix</code>)</a> for reads and the <code>git</code> binary for writes</td></tr>
+    <tr><th>Agents</th><td>Rust, one adapter per provider, invoked as ordinary child processes</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Why each of those, and where the seams are, is on the
+  <a href="architecture.html">architecture</a> page.
+</p>
+
+<h2 id="licence">Licence<a class="anchor" href="#licence" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Spagitty is released under the <strong>GNU General Public License v3.0 or later</strong>. The
+  wordmark typeface, Inter, is under the SIL Open Font License 1.1. Spagitty is not affiliated with
+  the Git project; Git and the Git logo are trademarks of Software Freedom Conservancy, and we never
+  use either — see <a href="branding.html">brand &amp; identity</a>.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="index.html"><span class="pager-dir">Previous</span><span class="pager-title">Home</span></a>
+<a class="pager-link next" href="install.html"><span class="pager-dir">Next</span><span class="pager-title">Install &amp; first run</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>

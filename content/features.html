@@ -1,0 +1,292 @@
+<span class="eyebrow">Start here</span>
+<h1>Feature reference</h1>
+
+<p class="lede">
+  Everything Spagitty ships, grouped by what you are trying to do. Each group links to the screen it
+  lives on and, where the reasoning is interesting, to the page that explains it.
+</p>
+
+<h2>Reading history</h2>
+
+<h3>The commit graph</h3>
+
+<ul>
+  <li>
+    <strong>Streamed and virtualised.</strong> Rows arrive in batches from a worker thread and never
+    move once drawn, so a repository with a hundred thousand commits is readable immediately. The
+    lane column is drawn on a canvas covering only the visible window — a repository with 200,000
+    commits draws the same number of paths as one with 40.
+  </li>
+  <li>
+    <strong>Lanes, branches and tags.</strong> Branch and tag chips sit in a gutter of their own,
+    starting at the column's left edge so every row's first chip is at the same x. A branch chip
+    carries its own divergence.
+  </li>
+  <li>
+    <strong>Author portraits, generated locally.</strong> A node is a portrait computed from the
+    author's email — never fetched. A picture per author would be a request per author on the most
+    performance-sensitive screen, would hand the committer list to whoever was asked, and would make
+    an offline repository look different from an online one. A merge is a plain dot rather than a
+    face: it is where two lines join, not one person's work.
+  </li>
+  <li>
+    <strong>Noise control.</strong> Hide, solo, smart branch visibility and pin-to-left, all per
+    repository. Each resolves to a root set for a fresh walk rather than a filter over drawn rows,
+    so lanes never draw an edge between commits that are not parent and child. The header chip
+    always names the current scope and the gear lists what is hidden, with a way back.
+  </li>
+  <li>
+    <strong>A configurable table.</strong> Branch/Tag, Graph, Commit Message, Author, Date/Time and
+    SHA. Right-click the header to toggle, drag to reorder, drag a divider to resize — choice, order
+    and widths saved per repository.
+  </li>
+  <li>
+    <strong>Depth that stays readable.</strong> Past twelve lanes the pitch compresses rather than
+    the column widening, down to a floor, so the graph can never reach the message column. Node
+    radius follows the pitch down.
+  </li>
+</ul>
+
+<h3>Log search</h3>
+
+<p>
+  Author, message, path, date range and diff content, composing as AND, each rendered as a chip that
+  says exactly what is applied. Results stream as the walk finds them, and every query carries a
+  token so starting one cancels the one before — which is what makes it safe to search on a
+  keystroke. The path filter uses git's own simplification rule, so a merge is not listed for a
+  change it only carried across.
+</p>
+
+<h3>File history and blame</h3>
+
+<p>
+  A file's commit timeline with rename following (<code>--follow</code>), beside a line-by-line
+  blame gutter carrying author, commit and relative time. Hovering a commit in the timeline
+  highlights every line it introduced; commit chips link back into the graph.
+</p>
+
+<h3>The reflog</h3>
+
+<p>
+  Where a ref has been — HEAD or any local branch — with three ways out of an entry: branch here,
+  check out here, reset here, offered in that order because only the first cannot cost anything.
+</p>
+
+<h2>Changing the working copy</h2>
+
+<ul>
+  <li>
+    <strong>Stage and unstage by file, hunk or line.</strong> Staged sits above Unstaged as solid
+    rows over dashed ones, and a path appears in both when it is staged in part.
+  </li>
+  <li>
+    <strong>Discard, with a clear account of what goes away.</strong> File, hunk or everything, only
+    on the unstaged side, each behind a confirmation whose wording says whether the file is reverted
+    or deleted. The staged side is deliberately untouched: unstage first, which costs nothing.
+  </li>
+  <li>
+    <strong>Commit, with signing read from git.</strong> The Commit button counts <em>staged</em>
+    changes, not working ones — a working copy with ten changed files and one staged must not offer
+    to commit ten.
+  </li>
+</ul>
+
+<h2>Diffs</h2>
+
+<ul>
+  <li><strong>Unified and split views</strong> of the same data, with the choice shared across the screens that show diffs, because it is a preference about reading diffs rather than about a screen.</li>
+  <li><strong>Syntax highlighting</strong> across a dozen grammars, mapped onto the active theme's own palette tokens rather than a fixed colour set.</li>
+  <li><strong>Image comparison</strong> — side by side, swipe, and onion skin.</li>
+  <li><strong>Binary files</strong> report a size delta rather than pretending to have lines.</li>
+  <li><strong>Search inside the patch text</strong>, so a large diff can be navigated rather than scrolled.</li>
+  <li><strong>Your own tools.</strong> External diff and merge tools are discovered on <code>PATH</code> and configured through git's own <code>diff.tool</code> and <code>merge.tool</code> keys — VS Code, Meld, Beyond Compare, KDiff3, Sublime Merge, Vimdiff and others.</li>
+</ul>
+
+<h2>Branches of work</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Thing</th><th>What you can do</th></tr></thead>
+  <tbody>
+    <tr><th>Branches</th><td>A sortable, resizable table with two-sided divergence bars; create, rename, delete, bulk-clean merged branches; checkout through <code>git switch</code>. Merged branches render dashed — except the one you are on.</td></tr>
+    <tr><th>Tags</th><td>A screen of their own: create, delete, rewrite an annotated message, check out. Annotated and lightweight are told apart throughout, because the difference decides whether a message can exist.</td></tr>
+    <tr><th>Stashes</th><td>List, pop, apply, drop, and browse an entry file by file with its diff — a stash is a commit, so the Diff screen's own components render it.</td></tr>
+    <tr><th>Worktrees</th><td>List, add (new branch, existing branch or detached), lock and unlock with a reason, remove and prune. Reachable from the tab strip and the command palette.</td></tr>
+    <tr><th>Submodules</th><td>Status, recursive init and update, URL sync, and deinit.</td></tr>
+    <tr><th>Remotes</th><td>Add, rename, remove and retarget, each through <code>git remote</code> rather than a config edit.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Rewriting and repairing</h2>
+
+<h3>Interactive rebase</h3>
+
+<p>
+  Plan a history rewrite and see the result before anything runs. The todo list is
+  <em>generated</em>, not parsed — running <code>git rebase -i</code> to read the file it opens would
+  start the rebase this screen exists to avoid. The preview is a fold of the plan, recomputed after
+  every edit, so the plan and the picture of it cannot disagree. Rows move by drag
+  <strong>and</strong> from the keyboard. “May conflict” is marked as a heuristic, in that word.
+</p>
+
+<h3>Conflict resolution</h3>
+
+<p>
+  Ours, the merged result and theirs side by side, with the common ancestor behind a disclosure — all
+  four read from the index's stages, which is the whole data model. Which stages exist <em>is</em>
+  the kind of conflict, and a missing side says so rather than rendering an empty pane. Three ways
+  out of a file: take a whole side, take one marker region, or type into the merged pane, each
+  followed by an explicit <code>git add</code>. Two ways out of the operation: Continue, live only
+  once nothing is conflicted, and Abort, whose confirmation names what comes back.
+</p>
+
+<h3>Undo</h3>
+
+<p>
+  Every destructive operation confirms first and reports afterwards. Where recovery is possible the
+  confirmation carries the actual command that brings the work back, rather than pointing vaguely at
+  the reflog.
+</p>
+
+<h2>Working with a forge</h2>
+
+<ul>
+  <li>
+    <strong>GitHub, GitLab and Bitbucket Cloud.</strong> Read pull requests, open the review
+    workspace, comment inline, publish a review (approve, request changes, comment), reply to
+    threads, resolve change requests, create a pull request, mark ready, merge (merge, squash or
+    rebase), close and reopen.
+  </li>
+  <li>
+    <strong>A dedicated review workspace.</strong> A full-window view with the description rendered
+    as markdown, collapsible panes of changed files and commits, an interactive diff with inline
+    comment threads, and draft comments that persist in <code>localStorage</code> so no review work
+    is lost to a network hiccup or a restart.
+  </li>
+  <li>
+    <strong>Reviewer and developer modes.</strong> Reviewers batch drafts into one submission;
+    authors cannot approve their own pull requests.
+  </li>
+  <li>
+    <strong>One request per refresh.</strong> GraphQL rather than REST — REST would need a list call
+    plus three per pull request for line counts, review decision and checks, which is ninety-one
+    requests for thirty open ones against a budget shared with everything else the token does.
+  </li>
+  <li>
+    <strong>Four different failure sentences</strong>, because they are four different decisions for
+    the reader: could not reach the host, rate limited and when it stops, token refused, no account
+    connected. “Could not load” is useless to somebody deciding whether to wait or go and fix
+    something.
+  </li>
+</ul>
+
+<h2>Network</h2>
+
+<p>
+  Clone, fetch, push and pull from the toolbar, each watched while it runs rather than
+  fire-and-wait. A clone shows the exact path it will land at before anything starts, refuses what
+  can be refused without the network, parses git's own progress, and — if cancelled — removes only
+  what it created. Spagitty never asks for a password itself: credentials go through git's own
+  helpers, and <code>GIT_TERMINAL_PROMPT=0</code> means a repository no helper can supply fails with
+  git's own message rather than hanging on a prompt there is no terminal for.
+</p>
+
+<h2>Identity and signing</h2>
+
+<ul>
+  <li>
+    <strong>Named profiles</strong> for name, email and signing key, switched from the status strip
+    and applied to a repository or globally.
+  </li>
+  <li>
+    <strong>The scope is always a parameter, never inferred.</strong> Both values report which file
+    they came from, the fields say which scope they are editing, and changing scope refills them
+    rather than carrying a typed value across. A value from the system configuration or the
+    environment is named as such rather than as a scope Spagitty writes.
+  </li>
+  <li>
+    <strong>Clearing unsets the key</strong> — <code>git config --unset</code>, not an empty string.
+  </li>
+  <li>
+    <strong>Signing reads what git would actually do.</strong> <code>commit.gpgsign</code> and its
+    neighbours are the authority, not a Spagitty preference pretending to be that.
+  </li>
+</ul>
+
+<h2>Attribution and standings</h2>
+
+<p>
+  Commits are credited from <code>Co-authored-by</code> trailers, and humans and agents are tracked
+  separately. Agents are ranked by <strong>first-pass rate</strong> — how often their work passed
+  without being sent back — never by commit volume, which only ranks whoever was given the most
+  work. The agent table has no human on it: ranking the person at the keyboard against the models
+  they are supervising turns a useful comparison into a productivity leaderboard.
+</p>
+
+<h2>The agent farm</h2>
+
+<p>
+  A goal cut into tasks, worked in parallel by the agents on your machine — one branch and one
+  worktree each, your verification commands in the path, and a review by a second agent before
+  anything is yours to merge. Five autonomy levels, a dependency DAG, a live activity drawer, a
+  progress ring, per-repository standings, and <code>AGENTS.md</code> attached to every prompt.
+</p>
+
+<p>It has a page of its own: <a href="farm.html">the agent farm</a>.</p>
+
+<h2>The delight layer</h2>
+
+<p>
+  Badges and titles for clean commits, survived rebases, recovered work and conflicts resolved —
+  never for time spent in the application. Per repository and per actor, so a badge earned in one
+  codebase says nothing about another. A secret badge is drawn as a slot with <code>???</code> in it
+  rather than omitted, and the header reads <code>n / m+?</code>, because a total that let the
+  secrets be worked out by arithmetic would remove the point of having any.
+</p>
+
+<p>
+  The <strong>Hall of Shame</strong> is a section, not a verdict: committing straight to
+  <code>main</code> is acknowledged, never celebrated, gets no reward moment, cannot be equipped as a
+  title, is left out of anything that leaves the application, and is hidden entirely at the
+  Professional personality.
+</p>
+
+<p>
+  Sounds are synthesised rather than sampled — a few oscillators and a gain envelope built at play
+  time. <strong>God mode</strong> in Settings drives the whole layer by hand so it can be checked
+  without earning it: preview a card, fire a real event through the real rules, grant or revoke
+  straight into the record, or operate on the whole record.
+</p>
+
+<h2>The chrome</h2>
+
+<ul>
+  <li><strong>Command palette</strong> — <code>Ctrl/Cmd+P</code> for everything Spagitty can do. It is a registry, not a list: a feature contributes its own commands next to itself.</li>
+  <li><strong>Repository tabs</strong>, including tabs onto linked worktrees.</li>
+  <li><strong>A nav rail</strong> that is the only answer to “where am I” — the active item and the route are the same fact. Counts are right-aligned, and <code>·</code> means “not computed yet” rather than a number that would be wrong.</li>
+  <li><strong>A status strip</strong> along the bottom, split into what is changing (the walk, the working copy, the last fetch) and what is merely true (commits, tags, submodules).</li>
+  <li><strong>Glass window chrome</strong> — an undecorated, transparent window that draws its own corner, outline and shadows, with panes that actually refract the application behind them. How that is done, and why the usual web technique does not work here, is on <a href="themes.html#the-glass">themes &amp; appearance</a>.</li>
+  <li><strong>Every panel resizes</strong>, from a registry that names each panel's variable, anchored edge and range.</li>
+  <li><strong>Eight palette families</strong> in light and dark, each accented in its own hue and each contrast-checked in tests rather than by eye.</li>
+</ul>
+
+<h2>Transparency</h2>
+
+<p>
+  <em>Show the git command behind each action</em> adds a drawer listing what Spagitty actually ran —
+  newest first, with the exit code and git's own stderr under anything that failed. The lines are
+  written by the module that spawns the process, so they carry the flags the shell layer added
+  rather than what a screen believed it asked for: that a fetch carries <code>--prune --progress</code>,
+  that a force push is <code>--force-with-lease</code>, that reverting a merge gained
+  <code>-m 1</code> on the way down.
+</p>
+
+<div class="note">
+  <span class="note-label">Reads are absent, deliberately</span>
+  <p>
+    History walking, refs, diffs and status are answered in-process and have no command line at all.
+    Nothing is synthesised for them and the drawer says so — inventing a <code>git log</code>
+    Spagitty never ran would teach you an invocation that does not exist.
+  </p>
+</div>

@@ -1,0 +1,159 @@
+<span class="eyebrow">How we work</span>
+<h1>Contributing</h1>
+
+<p class="lede">
+  Bug reports and pull requests are welcome. This page is the short version; the authoritative text is
+  <code>CONTRIBUTING.md</code> in the repository.
+</p>
+
+<div class="btn-row">
+  <a class="btn primary" href="https://github.com/spa-git-ty/spagitty" rel="noopener">The repository</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/issues" rel="noopener">Issues</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/blob/main/CONTRIBUTING.md" rel="noopener">CONTRIBUTING.md</a>
+</div>
+
+<h2>Read these first</h2>
+
+<ol>
+  <li><a href="architecture.html">Architecture</a> — the three layers and the rules that hold their seams.</li>
+  <li><a href="process.html">How we work</a> — the working record, and why a change starts with an item.</li>
+  <li><a href="testing.html">Testing</a> — what is checked and how.</li>
+  <li><a href="ci.html">CI/CD &amp; releases</a> — the gates your change has to clear.</li>
+</ol>
+
+<h2>Licence of contributions</h2>
+
+<p>
+  Spagitty is <strong>GPL-3.0-or-later</strong>. By contributing you agree that your contribution is
+  licensed under GPL-3.0-or-later. There is no CLA and no copyright assignment — you keep the
+  copyright to your work.
+</p>
+
+<p>Every new source file gets an SPDX header as its first line:</p>
+
+<pre><code>// SPDX-License-Identifier: GPL-3.0-or-later      &lt;!-- Rust, TypeScript --&gt;
+&lt;!-- SPDX-License-Identifier: GPL-3.0-or-later --&gt;  &lt;!-- Svelte, Markdown --&gt;</code></pre>
+
+<h2>Developer Certificate of Origin</h2>
+
+<p>
+  We use the <a href="https://developercertificate.org/" rel="noopener">DCO</a> rather than a CLA. Sign
+  off every commit:
+</p>
+
+<pre><code>git commit -s</code></pre>
+
+<p>
+  That appends <code>Signed-off-by: Your Name &lt;you@example.com&gt;</code>. The name and email must
+  be real and must match the commit author.
+</p>
+
+<h2>Branch and commit</h2>
+
+<ul>
+  <li>
+    Every branch carries a work item id from <code>agile/</code>:
+    <code>feature/FEAT-###-…</code>, <code>task/TASK-###-…</code>, <code>bugfix/BUG-###-…</code>. If
+    your change does not have an item yet, open one — it is a short document, and it is what makes the
+    record readable a year later.
+  </li>
+  <li>A pull request is the only path into <code>main</code> or <code>dev</code>.</li>
+  <li>
+    A changelog entry goes under <code>## [Unreleased]</code> in the <em>same change</em> as the work.
+    Gate 6 reads that file for release notes and refuses to release without a section.
+  </li>
+  <li>
+    Update the documentation your change affects, in the same commit. A section describing something
+    that no longer exists is a defect.
+  </li>
+</ul>
+
+<h2>Before you push</h2>
+
+<pre><code>cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+bun run check
+bun run coverage</code></pre>
+
+<p>
+  The full local gate sequence, including licences and advisories, is on
+  <a href="ci.html#running-the-gates-locally">CI/CD &amp; releases</a>.
+</p>
+
+<h2>Dependencies</h2>
+
+<p>
+  Check the licence before adding one. <strong>Acceptable:</strong> MIT, Apache-2.0, BSD, ISC,
+  MPL-2.0, LGPL, GPL-2.0-with-linking-exception, CC0, OFL (fonts).
+  <strong>Not acceptable:</strong> proprietary, SSPL, BSL, or any “source available” non-free licence.
+  Apache-2.0-only code must not be linked into GPL-2.0-only code.
+</p>
+
+<p>
+  A new dependency has to show up in the generated third-party licence list, and it has to be
+  justified in the change that adds it.
+</p>
+
+<h2>Design rules that are not negotiable</h2>
+
+<p>These come from the design handoff and hold across every screen.</p>
+
+<ul>
+  <li>
+    <strong>Standard git terminology only.</strong> fetch, push, stage, hunk, <code>stash@{n}</code>,
+    pick/squash/reword/drop, ours/theirs. No invented vocabulary, no friendly renaming of git
+    concepts.
+  </li>
+  <li>
+    <strong>Structural numbers are shared constants, never literals.</strong> The commit row pitch, the
+    rail width, the detail panel width and the lane pitch each have exactly one definition. If you find
+    yourself typing <code>26</code>, use the constant.
+  </li>
+  <li><strong>Never block on walking the whole history.</strong> The graph streams in windows and paints progressively.</li>
+  <li>
+    <strong>Destructive actions are reversible.</strong> Rebase previews before executing; conflict
+    resolution writes nothing until finished; Undo maps to a reflog restore.
+  </li>
+  <li><strong>Nothing leaves the machine.</strong> Repositories are read straight from disk; credentials go in the OS keychain.</li>
+  <li><strong>Never use the Git logo or Git orange.</strong> See <a href="branding.html">brand &amp; identity</a>.</li>
+</ul>
+
+<h2>Code style</h2>
+
+<ul>
+  <li><strong>Rust:</strong> <code>cargo fmt</code> and <code>cargo clippy</code> clean.</li>
+  <li><strong>Frontend:</strong> <code>bun run check</code> clean.</li>
+  <li>
+    <strong>Do not reimplement what <code>shell.rs</code> should shell out to <code>git</code> for</strong>
+    — interactive rebase execution, hooks, LFS, submodule recursion, credential helpers. If you need a
+    new one of those, add it there with a comment explaining why <code>gix</code> is not the right
+    tool, and extend the boundary table in the same change.
+  </li>
+  <li>
+    <strong>Do not reformat files you are not otherwise changing.</strong> A diff that is 90%
+    whitespace is a diff nobody can review.
+  </li>
+  <li>
+    <strong>Write the <em>why</em> in the module header.</strong> A comment restating the signature is
+    noise; the reasoning behind a choice is the thing that cannot be recovered from the code.
+  </li>
+</ul>
+
+<h2>Reporting a bug</h2>
+
+<p>Useful reports say:</p>
+
+<ul>
+  <li>Which screen, by its code if you know it (<code>1A</code>, <code>1H</code>, …).</li>
+  <li>Your platform and Spagitty version — <em>Settings → License</em> has both, along with the exact commit the build came from.</li>
+  <li>What you did, what happened, and what you expected instead.</li>
+  <li>
+    If it involves a git operation, what <em>Show the git command behind each action</em> recorded.
+    That drawer shows the actual argv, not a reconstruction.
+  </li>
+</ul>
+
+<p>
+  For a suspected vulnerability, describe the class of problem rather than posting a working exploit.
+</p>

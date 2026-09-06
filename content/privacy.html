@@ -1,0 +1,169 @@
+<span class="eyebrow">Using Spagitty</span>
+<h1>Privacy &amp; security</h1>
+
+<p class="lede">
+  Spagitty has no telemetry, no analytics, no account of ours and no server of ours in any path.
+  Repositories stay on disk. This page says exactly what that means, and — more usefully — how the
+  claims are made checkable rather than promised.
+</p>
+
+<h2>What Spagitty does not do</h2>
+
+<ul>
+  <li><strong>No telemetry.</strong> Nothing is counted, sampled, batched or sent. There is nowhere for it to go.</li>
+  <li><strong>No analytics, crash reporting or usage metrics.</strong> Same reason.</li>
+  <li><strong>No account.</strong> There is no Spagitty sign-in, because there is no Spagitty service.</li>
+  <li><strong>No model, no key.</strong> Nothing in Spagitty performs inference, and nothing ships a credential for a provider.</li>
+  <li><strong>No repository upload.</strong> Repositories are read where they sit. Nothing copies, syncs or indexes them anywhere.</li>
+  <li><strong>No password prompt of our own.</strong> Credentials go through git's own helpers, which is where OS keychain integration already lives.</li>
+</ul>
+
+<h2>What does cross the network, and when</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>What</th><th>To where</th><th>When</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>Pull request data</th>
+      <td>The forge you connected — GitHub, GitLab or Bitbucket Cloud</td>
+      <td>When the Pull requests screen refreshes, carrying a token you issued, asking for pull requests you can already see in a browser. No repository contents, no paths, no commit messages.</td>
+    </tr>
+    <tr>
+      <th>Fetch, push, pull, clone</th>
+      <td>The remote in your repository's own config</td>
+      <td>When you press the button. It is <code>git</code> doing it, with your credentials.</td>
+    </tr>
+    <tr>
+      <th>An update check</th>
+      <td>The releases API for this project</td>
+      <td>When you ask, from Settings → About. It reports that a version exists; nothing downloads or replaces anything.</td>
+    </tr>
+    <tr>
+      <th>Whatever an agent does</th>
+      <td>Wherever that agent talks to</td>
+      <td>Only in a farm run you started, and only for the agents you installed. Spagitty is not in that path — it starts a process, reads its output, and stops it.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>That is the complete list.</p>
+
+<h2>Two boundaries that make it checkable</h2>
+
+<p>
+  A promise about what an application sends is only as good as the number of places that could send
+  something. Spagitty keeps both counts at one.
+</p>
+
+<h3>One HTTP client, in one file</h3>
+
+<p>
+  The original promise was that no HTTP client was linked in either language, with a test to keep it
+  that way. Reading pull requests could not survive that, so it became a narrower promise that is
+  still worth having and is still tested: <strong>exactly one</strong> client, <code>ureq</code>,
+  declared <strong>only</strong> in <code>spagitty-core</code>, and reachable from exactly one file —
+  <code>crates/spagitty-core/src/forge/http.rs</code>.
+</p>
+
+<p>
+  The webview links no HTTP client, makes no request, and never holds a token. Its content security
+  policy allows <code>self</code>, data URIs and Tauri's own asset protocol, and nothing else — so
+  even a rendered pull request description cannot reach out.
+</p>
+
+<h3>One process spawner, in one file</h3>
+
+<p>
+  <code>crates/spagitty-core/src/shell.rs</code> is the only module in the workspace that spawns a
+  process. That is a correctness rule first — see
+  <a href="core-crate.html#the-git-binary-boundary">the git binary boundary</a> — but it is also what
+  makes “what did this application actually run” answerable at all.
+</p>
+
+<h2>Where secrets live</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Secret</th><th>Stored</th></tr></thead>
+  <tbody>
+    <tr><th>Forge personal access tokens</th><td>The OS keychain, and nowhere else. Never a configuration file.</td></tr>
+    <tr><th>Remote credentials</th><td>Not by Spagitty at all — git's credential helpers own them.</td></tr>
+    <tr><th>Connected accounts</th><td><code>accounts.json</code> holds a host and a login. Nothing else.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Why a personal access token rather than OAuth</h3>
+
+<p>
+  A token is issued, scoped and revoked by you without touching anything else you own. OAuth would
+  need a redirect listener and a client secret shipped inside a GPL binary anybody can read — which
+  is not a secret. The login is read back from the host rather than typed, so the account shown is
+  the account the token actually belongs to.
+</p>
+
+<h2>Credentials are removed on the way in</h2>
+
+<p>
+  A clone URL can carry a token — <code>https://user:token@host/repo.git</code> — so the command
+  record strips the userinfo <em>before</em> the entry is stored. An entry that never held the secret
+  cannot leak it through the copy button, or through a later reader who assumed display was doing
+  the work.
+</p>
+
+<h2>The agent farm</h2>
+
+<ul>
+  <li>
+    <strong>Agents run as you.</strong> Same user, same environment, same credentials. Spagitty adds
+    no key and no model.
+  </li>
+  <li>
+    <strong>Each task is isolated to its own worktree.</strong> Nothing an agent does reaches your
+    working copy, and path-level leases stop two agents editing the same file.
+  </li>
+  <li>
+    <strong>The farm's state stays in the repository</strong> — <code>.spagitty/</code>, added to
+    <code>.git/info/exclude</code>, never committed, deleted with the repository.
+  </li>
+  <li>
+    <strong>Verification runs argv, not a shell string.</strong> There is no shell in the verification
+    path, so a command cannot be turned into three by a stray character.
+  </li>
+  <li>
+    <strong>Stopping means stopping.</strong> Cancelling a run or reaching a deadline terminates the
+    whole process tree — a process group on Unix, a job object on Windows, assigned before the child
+    can spawn anything of its own.
+  </li>
+</ul>
+
+<div class="warn">
+  <span class="note-label">What Spagitty cannot promise for you</span>
+  <p>
+    A coding agent you run is a program with your permissions, talking to whatever service it was
+    built for. Spagitty isolates its <em>working tree</em> and records what it did; it does not, and
+    cannot, sandbox what that agent sends to its own provider. Choose the agents you install, and use
+    the autonomy dial that matches how much you trust them.
+  </p>
+</div>
+
+<h2>Supply chain</h2>
+
+<p>
+  Every dependency's licence is identified and permitted, checked on every change. Known-vulnerable
+  dependencies fail the build at the high level or above, and an advisory that cannot be fixed is
+  recorded <em>by id</em>, with its crate and its reason, so anything not listed still fails — the
+  line between recording a risk and switching the check off. Secret scanning runs over every change.
+  The whole contract is on <a href="ci.html">CI/CD &amp; releases</a>.
+</p>
+
+<h2>Reporting something</h2>
+
+<p>
+  Spagitty is free software and the source is the specification: if you believe something here is
+  wrong, the file that would prove it is named on this page. Open an issue on
+  <a href="https://github.com/spa-git-ty/spagitty/issues" rel="noopener">the repository</a>. For a
+  suspected vulnerability, say what the class of problem is rather than posting a working exploit.
+</p>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://spa-git-ty.github.io/wiki/sitemap.xml

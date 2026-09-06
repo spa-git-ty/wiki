@@ -1,0 +1,201 @@
+<span class="eyebrow">How we work</span>
+<h1>Release history</h1>
+
+<p class="lede">
+  Every version of Spagitty and what shipped in it, newest first. The full text is in
+  <code>CHANGELOG.md</code>, which is also what gate 6 reads to produce a release's notes — a version's
+  section becomes those notes verbatim.
+</p>
+
+<div class="btn-row">
+  <a class="btn primary" href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Latest release</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/blob/main/CHANGELOG.md" rel="noopener">Full changelog</a>
+</div>
+
+<div class="note">
+  <span class="note-label">Versioning</span>
+  <p>
+    <a href="https://semver.org/spec/v2.0.0.html" rel="noopener">Semantic Versioning 2.0.0</a>, and
+    Spagitty is at <code>0.x</code>: the surface is not yet stable, MINOR may break, PATCH stays
+    backward-compatible. The format follows
+    <a href="https://keepachangelog.com/en/1.1.0/" rel="noopener">Keep a Changelog</a>.
+  </p>
+</div>
+
+<h2>0.5.1 — 6 September 2026</h2>
+
+<p>A reliability pass over the farm's edges, plus a development-mode styling fix.</p>
+
+<ul>
+  <li>
+    <strong>Automatic merges got stricter.</strong> They now require passing checks and a successful
+    independent review <em>of the work actually committed</em>, plus merge permission. Tasks keep their
+    intended destination, and competing farm merges serialise rather than racing.
+  </li>
+  <li>
+    <strong>Verification output is drained continuously</strong> with bounded retention, and stopping a
+    check or reaching its deadline terminates its whole process tree.
+  </li>
+  <li>
+    <strong>One completion watcher per run</strong>, review runs included, so a late result stays
+    attached to the attempt that produced it.
+  </li>
+  <li>
+    <strong>Running agents and planners stay cancellable</strong> while background threads wait on them;
+    Windows agent descendants are contained in a job before execution starts.
+  </li>
+  <li>
+    <strong>Development window sizing stays intact</strong> when a component stylesheet request arrives
+    before its JavaScript.
+  </li>
+  <li>
+    Frontend routes are measured in coverage, and descendant termination is checked on all three
+    platforms before a release.
+  </li>
+</ul>
+
+<h2>0.5.0 — 5 September 2026</h2>
+
+<blockquote>
+  <p>
+    The farm could run a plan but there was almost no way to watch it run. This is that release: a ring
+    rather than a count, a chip for every working agent, a log you can read and filter, a queue that
+    says why a task is waiting, and a task too big for one agent that can be cut into smaller ones.
+  </p>
+</blockquote>
+
+<h3>Added</h3>
+
+<ul>
+  <li><strong>The Farm screen is worth watching.</strong> <code>3 / 7 done</code> becomes a ring — finished fills it, running is a brighter arc at its leading edge, blocked colours the rest — so a farm that is working looks different from one that stopped at the same count. One chip per working agent says who is on what and for how long.</li>
+  <li><strong>A run that has gone quiet says so.</strong> After six minutes without a word the chip and the row say how long it has been silent and the pulse stops. Nothing is stopped for you.</li>
+  <li><strong>Agents earn their badges from the farm.</strong> A task taken all the way to Done scores the agent that did it — whether the checks really passed, whether the reviewer approved, how many times it was sent back.</li>
+  <li><strong>Every task says who asked for it.</strong> Your own tasks stay unmarked; anything an agent asked for carries one quiet mark, and its panel says which agent and why.</li>
+  <li><strong>A task that is too big can be broken down.</strong> The subtasks arrive as a proposed plan under it, and the task becomes a heading that finishes when they do. A plan may hold 24 tasks; a farm may run 8 agents at once; the attempt limit became a setting.</li>
+  <li><strong>A proposed plan is accepted in one action</strong> — a band with a checkbox per task, rather than opening each one.</li>
+  <li><strong>A queued task says why it is not running</strong>, in the scheduler's own words.</li>
+  <li><strong>The farm's log is a drawer you can read</strong>, with Activity and Transcript tabs, following, and Hold.</li>
+  <li><strong>A little motion, where it says something</strong> — and nothing at all for a reader who has asked for reduced motion.</li>
+</ul>
+
+<h3>Changed</h3>
+
+<ul>
+  <li><strong>A long session stops growing.</strong> The run history is bounded now; transcripts were always on disk and the drawer can read a task's whole log back from one.</li>
+  <li><strong>Every farm event carries the time it happened</strong>, which is what makes a log a log.</li>
+  <li><strong>Watching a farm costs almost nothing.</strong> The refresh no longer runs <code>git worktree list</code> and re-parses the whole activity log on the thread that paints the window.</li>
+</ul>
+
+<h2>0.4.1-alpha — 3 September 2026</h2>
+
+<p>A pass over the palettes and the rail.</p>
+
+<ul>
+  <li><strong>Four more palette families</strong> — Nord, Rosé Pine, Solarized and Everforest, each in light and dark, bringing the set to eight families and sixteen palettes.</li>
+  <li><strong>Every theme now accents in its own hue.</strong> They all wore the brand amber, which put one colour on seven palettes built around a different one. A test now fails if two families ever share an accent.</li>
+  <li><strong>The Farm is the rail's first screen</strong>, and the Graph follows it. The Graph still owns <code>/</code>.</li>
+  <li><strong>Open repository leaves the rail once a repository is open.</strong> It was a filled accent button above every screen offering to replace the repository you were working in.</li>
+  <li><strong>The repository's state moved from the rail's foot to the status strip</strong> — one line, in two groups, rather than four stacked lines duplicating the rail's own badges.</li>
+  <li><strong>The Farm's first screen is a starter page</strong>, not an empty state: what a farm is, the loop in four steps, a goal field, and three readiness rows.</li>
+</ul>
+
+<h2>0.4.0-alpha — 3 September 2026</h2>
+
+<p>The agent farm.</p>
+
+<ul>
+  <li>
+    <strong>The agent farm.</strong> Spagitty runs and shepherds coding agents instead of only reading
+    what they did. A new <code>crates/spagitty-farm</code> is the control plane and nothing else —
+    every git operation still goes through <code>spagitty-core</code>. Inside it: the domain model, one
+    adapter per provider, a branch and worktree per task with path-level lease locks, a deterministic
+    verifier, a peer-review router, a dependency-DAG scheduler, and local persistence.
+  </li>
+  <li>The first release to carry its pre-release suffix in the manifest.</li>
+</ul>
+
+<h2>0.3.0 — 2 September 2026</h2>
+
+<p>Ten features, and four defects found on the way.</p>
+
+<h3>Added</h3>
+
+<ul>
+  <li><strong>Worktrees management</strong> — view, add, switch, lock, unlock, remove and prune linked working trees.</li>
+  <li><strong>File history and interactive blame</strong> — screen 1O, with rename following and a line-by-line gutter.</li>
+  <li><strong>Diff syntax highlighting</strong> — grammar-based, mapped onto the theme's own palette tokens.</li>
+  <li><strong>Image and binary diffs</strong> — side-by-side, swipe and onion-skin comparison; size deltas for binaries.</li>
+  <li><strong>Diff content search</strong> — search inside added and removed patch lines.</li>
+  <li><strong>Submodules management</strong> — status, recursive init and update, sync, deinit.</li>
+  <li><strong>External diff and merge tools</strong> — discovery and launch, through git's own configuration keys.</li>
+  <li><strong>Multi-identity profiles</strong> — named author identities, applied locally or globally.</li>
+  <li><strong>Extended forge integration and in-app PR creation</strong> — GitLab and Bitbucket Cloud alongside GitHub.</li>
+  <li><strong>Pull request lifecycle actions</strong> — merge, close, reopen and mark ready.</li>
+  <li><strong>The delight layer</strong>, and <strong>God mode</strong> to drive it by hand.</li>
+</ul>
+
+<h3>Fixed</h3>
+
+<ul>
+  <li>The Accounts chip in Settings opened the License section — one chip with no branch, hidden by a catch-all.</li>
+  <li>Every <code>&lt;select&gt;</code> in the application was drawn by the operating system.</li>
+  <li>The External Tools section was themed against tokens that do not exist, so every palette but one fell through to a hard-coded fallback.</li>
+  <li>The Open repository button pushed its label to the far edge.</li>
+</ul>
+
+<h2>0.2.0 — 30 August 2026</h2>
+
+<ul>
+  <li>
+    <strong>The PR review workspace.</strong> A full-window view with the description rendered, a
+    collapsible pane of files and commits, an interactive diff with inline comment threads, replies and
+    resolution, and drafts persisted locally.
+  </li>
+  <li><strong>Spagitty, with a face: the brand.</strong> The application identity became the mark, the wordmark and the palette.</li>
+  <li><strong>A brand guide, an interactive showcase, and UI identity integration.</strong></li>
+  <li><strong>The frontend toolchain moved to Bun.</strong></li>
+</ul>
+
+<h2>0.1.0 — 29 August 2026</h2>
+
+<blockquote>
+  <p>
+    The first release. Everything below is new, so it is one <code>Added</code> section rather than a
+    pretence that anything changed.
+  </p>
+</blockquote>
+
+<ul>
+  <li><strong>The graph</strong> — commit history as a lane graph with author portraits, branch chips carrying divergence, square lane turns, lane compression, and a detail panel that can be put away. Search, reflog and tags each got a screen of their own.</li>
+  <li><strong>Working copy</strong> — stage, unstage, commit (with signing), discard, and a diff screen with split and unified views.</li>
+  <li><strong>Branches</strong> — a sortable, resizable table with two-sided divergence bars; create, delete, rename; checkout from the toolbar.</li>
+  <li><strong>Stash</strong> — list, pop, apply, drop, and browsing an entry file by file.</li>
+  <li><strong>Rebase</strong> — interactive planning and execution, and a conflicts screen that resolves and writes.</li>
+  <li><strong>Remotes</strong> — fetch, push and pull; clone; remotes management in Settings.</li>
+  <li><strong>Pull requests</strong> — read from GitHub, split into what needs you and what is waiting on others.</li>
+  <li><strong>The chrome</strong> — repository tabs, a grouped toolbar, a collapsible nav rail, a status strip, themes, frosted-glass menus and dialogs, and the git command behind each action shown as it runs.</li>
+  <li><strong>Update check</strong>, and the <strong>release lane</strong> — three lanes, all three platforms, notes from the changelog.</li>
+</ul>
+
+<p>
+  Two earlier preview builds were cut before the changelog existed. They remain published as
+  pre-releases and are superseded by 0.1.0 — not withdrawn, only preceded.
+</p>
+
+<h2>Milestones in the pipeline</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Date</th><th>What</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>26 August 2026</th>
+      <td>Gates 1 to 4 ran for the first time, on the first pull request. Nine and a half minutes, all four green. The workflows had landed with the code they gate and then waited for a remote to run on; that wait turned out to have been right.</td>
+    </tr>
+    <tr>
+      <th>28 August 2026</th>
+      <td>Gate 5 built all three platforms green on the first merge into <code>main</code>. Gate 6 failed on the same run — the runner had no git identity, so <code>git tag -a</code> refused with <code>fatal: empty ident name</code>. Nothing was tagged and nothing was published: a halt, not a broken release. The fix set the bot identity and moved the notes off generated text and onto the changelog.</td>
+    </tr>
+  </tbody>
+</table>
+</div>

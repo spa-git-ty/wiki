@@ -1,0 +1,194 @@
+<span class="eyebrow">Start here</span>
+<h1>Install &amp; first run</h1>
+
+<p class="lede">
+  Spagitty ships installers for Linux, macOS and Windows on every publishing merge. There is no
+  account step and no cloud to log into — install it, open a repository, and work.
+</p>
+
+<h2>Download a build</h2>
+
+<p>
+  Every release carries installers for all three platforms, built by the release lane rather than by
+  hand:
+</p>
+
+<div class="btn-row">
+  <a class="btn primary" href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Latest release</a>
+  <a class="btn" href="https://github.com/spa-git-ty/spagitty/releases" rel="noopener">All releases</a>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Platform</th><th>What you get</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr>
+      <th>Linux</th>
+      <td><code>.deb</code>, <code>.rpm</code> and <code>.AppImage</code></td>
+      <td>Needs the platform WebView, WebKitGTK. Most desktop distributions already have it.</td>
+    </tr>
+    <tr>
+      <th>macOS</th>
+      <td><code>.dmg</code> and <code>.app</code></td>
+      <td>Apple silicon on the published release. The draft lane also builds an Intel binary.</td>
+    </tr>
+    <tr>
+      <th>Windows</th>
+      <td><code>.msi</code> and <code>.exe</code> installer</td>
+      <td>Uses the system WebView2 runtime.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="warn">
+  <span class="note-label">Nothing is signed yet</span>
+  <p>
+    There is no Apple Developer account and no code-signing certificate in this project, so macOS
+    Gatekeeper refuses a downloaded build on a double-click and Windows SmartScreen warns about it.
+    On macOS, open it once from the context menu — right-click the app, choose <strong>Open</strong>,
+    then <strong>Open</strong> again in the dialog. On Windows, choose <em>More info →
+    Run anyway</em>. Adding real signing is a change to the build gate and the draft lane together,
+    and it is tracked rather than quietly deferred.
+  </p>
+</div>
+
+<h2>First run</h2>
+
+<ol>
+  <li>
+    <strong>Open a repository.</strong> The tab strip's <code>+</code>, the toolbar's repository
+    picker, or the All repositories screen all do it. Spagitty never goes looking for repositories on
+    its own — opening one is the only way it joins the list.
+  </li>
+  <li>
+    <strong>The graph paints as it walks.</strong> Rows arrive in batches from a worker thread and
+    never move once drawn, so a large repository is readable long before the walk finishes.
+  </li>
+  <li>
+    <strong>Set your identity, if you want to.</strong> <em>Settings → You</em> reads
+    <code>user.name</code> and <code>user.email</code> per scope and says which file each value came
+    from. Saved profiles let you switch between them from the status strip.
+  </li>
+  <li>
+    <strong>Connect a forge, if you use one.</strong> <em>Settings → You → Accounts</em> takes a
+    personal access token for GitHub, GitLab or Bitbucket Cloud. The token goes into the OS keychain
+    and never into a configuration file.
+  </li>
+  <li>
+    <strong>Pick a theme.</strong> <em>Settings → Appearance</em> has eight palette families, each in
+    light and dark. See <a href="themes.html">themes &amp; appearance</a>.
+  </li>
+</ol>
+
+<div class="tip">
+  <span class="note-label">Two things worth learning early</span>
+  <p>
+    <strong><code>Ctrl/Cmd+P</code></strong> opens the command palette — everything Spagitty can do,
+    filtered as you type. <strong><code>Ctrl+F</code></strong> goes straight to log search from any
+    screen, with the first field focused.
+  </p>
+</div>
+
+<h2>Where Spagitty keeps things</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>What</th><th>Where</th></tr></thead>
+  <tbody>
+    <tr><th>Recent repositories</th><td>A plain JSON file of paths in Spagitty's own configuration directory</td></tr>
+    <tr><th>Behaviour toggles</th><td>Beside the repository list, in the same directory</td></tr>
+    <tr><th>Connected accounts</th><td><code>accounts.json</code> — a host and a login, and nothing else</td></tr>
+    <tr><th>Forge tokens</th><td>The OS keychain. Never a configuration file.</td></tr>
+    <tr><th>Theme, column layouts, badge records</th><td><code>localStorage</code> in the webview, keyed by repository path</td></tr>
+    <tr><th>An agent farm</th><td><code>.spagitty/</code> inside the repository, excluded from git and never committed</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Build from source</h2>
+
+<p>You need <strong>Rust 1.77 or newer</strong>, <strong>Bun 1.4</strong>, and the platform WebView.</p>
+
+<pre><code>git clone https://github.com/spa-git-ty/spagitty.git
+cd spagitty
+bun install
+
+bun run check          # typecheck: svelte-kit sync &amp;&amp; svelte-check
+bun run test           # vitest
+bun run coverage       # vitest with the coverage floor enforced
+cargo test --workspace # the Rust suites
+
+bun run tauri dev      # the desktop app, in development
+bun run tauri build    # installers for this platform</code></pre>
+
+<p>
+  On Linux you also need the WebKitGTK development packages that Tauri links against. The
+  <a href="https://tauri.app/start/prerequisites/" rel="noopener">Tauri prerequisites</a> list them
+  per distribution; nothing in Spagitty adds to that list.
+</p>
+
+<h3>Opening a repository straight from the command line</h3>
+
+<p>
+  The binary takes a path and opens onto it with no dialog. In development the argument has to be
+  passed through both wrappers:
+</p>
+
+<pre><code>bun run tauri dev -- -- -- /path/to/repository</code></pre>
+
+<p>
+  That path is read by the <code>launch_path</code> command, which is also what the session restore
+  falls back to when no path is given — see <a href="frontend.html#the-launch-sequence">the launch
+  sequence</a>.
+</p>
+
+<h3>If the window comes up blank on Linux</h3>
+
+<p>
+  WebKitGTK's DMABuf renderer cannot allocate a GBM buffer on some driver and compositor
+  combinations, and a webview with no frame to present is a white window for the whole session. The
+  symptom is a blank window with <code>Failed to create GBM buffer</code> on stderr. The workaround
+  is one environment variable, and it is opt-in rather than forced on every Linux host:
+</p>
+
+<pre><code>WEBKIT_DISABLE_DMABUF_RENDERER=1 spagitty</code></pre>
+
+<p>
+  Spagitty sets <code>WEBKIT_FORCE_COMPOSITING_MODE=1</code> for itself unless your environment
+  already has an opinion, and deliberately sets nothing for the DMABuf renderer — turning it off for
+  everybody costs every host the GPU path, which is a frame that lags the pointer during a resize.
+  The reasoning is in <a href="tauri-layer.html#platform-facts">the Tauri layer</a>.
+</p>
+
+<h2>Running the gates locally</h2>
+
+<p>
+  Gates 1 to 3 are what a change is checked against before it is committed. The full list, and what
+  each one proves, is on <a href="ci.html">CI/CD &amp; releases</a>.
+</p>
+
+<pre><code>bun install --frozen-lockfile              # the dependencies, locked
+cargo deny check licenses bans sources     # gate 1 — needs cargo-deny
+cargo fmt --all --check                    # gate 2
+cargo clippy --workspace --all-targets -- -D warnings
+bun run check
+python3 tools/make-icons.py --check        # gate 2 — brand drift, needs Pillow
+python3 tools/make-brand.py --check
+cargo llvm-cov --workspace \
+  --ignore-filename-regex '(fixture|testing)\.rs' --summary-only
+bun run coverage                           # gate 3
+cargo deny check advisories                # gate 4
+bun audit --audit-level=high</code></pre>
+
+<p><code>cargo-deny</code> and <code>cargo-llvm-cov</code> install with:</p>
+
+<pre><code>cargo install cargo-deny cargo-llvm-cov</code></pre>
+
+<h2>Updating</h2>
+
+<p>
+  <em>Settings → About</em> checks whether there is a newer Spagitty than the one you are running.
+  It is a check, not an updater: it tells you a version exists and where to get it, and nothing
+  downloads or replaces anything behind your back.
+</p>

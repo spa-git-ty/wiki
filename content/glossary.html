@@ -1,0 +1,65 @@
+<span class="eyebrow">How we work</span>
+<h1>Glossary</h1>
+
+<p class="lede">
+  The vocabulary this wiki uses. Spagitty's own terms first, then the git ones it leans on — because
+  the rule in the interface is standard git terminology only, and that only helps if the terms are
+  defined somewhere.
+</p>
+
+<h2>Spagitty's own terms</h2>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Agent</th><td>A coding assistant with a command line, installed on your machine — Claude Code, Codex, Cursor, Oh My Pi, or one you configure yourself. Spagitty runs agents; it does not contain them.</td></tr>
+    <tr><th>Agent farm</th><td>A goal, the tasks it was cut into, and the agents working them in parallel. See <a href="farm.html">the agent farm</a>.</td></tr>
+    <tr><th>Autonomy level</th><td>Where you stand in the loop, from <em>Manual</em> (nothing runs by itself) to <em>Unattended</em>. Five settings, each a sentence rather than a slider.</td></tr>
+    <tr><th>Badge</th><td>An achievement in the delight layer, earned per repository and per actor. Never awarded for time spent in the application.</td></tr>
+    <tr><th>The bed</th><td>The lane column's background, laid out once at the full height of the table underneath the rows — what a repository shorter than the window needs so the column does not simply end at the last commit.</td></tr>
+    <tr><th>Delight layer</th><td>Badges, titles, cards and sounds. Deliberately a sink: git actions push events into it and it pushes nothing back.</td></tr>
+    <tr><th>Divergence bar</th><td>The two-sided bar on the Branches screen showing ahead and behind, scaled against the widest drift on screen. It replaced <code>↑2 ↓3</code>, which read worst in exactly the case that matters.</td></tr>
+    <tr><th>First-pass rate</th><td>How often an agent's work passed verification and review without being sent back. The only thing agents are ranked by — volume ranks whoever was given the most work.</td></tr>
+    <tr><th>Forge</th><td>A repository host: GitHub, GitLab or Bitbucket Cloud. Kept host-agnostic in the interface, with a test that fails if a host's name appears in a screen.</td></tr>
+    <tr><th>Glass / the lens</th><td>The frosted, refracting chrome. The filter is applied to the application <em>underneath</em> a pane rather than to the pane itself, because the usual web technique renders nothing on WebKitGTK.</td></tr>
+    <tr><th>Handoff</th><td>The structured thing an agent returns at the end of a run — status, a test report, proposed tasks — alongside its prose.</td></tr>
+    <tr><th>Hold</th><td>A control in the farm's log drawer that freezes the list so a line can be read while it is still arriving, and counts what arrived meanwhile. Distinct from <em>following</em>, which is just where the scrollbar is.</td></tr>
+    <tr><th>Lease</th><td>A path-level claim a task holds while it runs. Worktrees stop two agents corrupting each other's files; leases stop two of them editing the same path.</td></tr>
+    <tr><th>Portrait</th><td>The author avatar drawn on a commit node, generated from the email address and never fetched — so it is the same on every machine, and an offline repository looks no different from an online one.</td></tr>
+    <tr><th>Root set</th><td>What a visibility control resolves to: the tips a fresh walk starts from. Never a filter over rows already drawn, which would leave lanes drawing edges between commits that are not parent and child.</td></tr>
+    <tr><th>Screen code</th><td>The short handle for a screen — <code>1A</code>, <code>1H</code>, <code>1Q</code> — so it can be named in one token. See <a href="screens.html">the screen reference</a>.</td></tr>
+    <tr><th>Sweep</th><td>A manual test pass against the fixture repository, recorded as filled-in results in the work item's own document.</td></tr>
+    <tr><th>Task</th><td>The farm's unit of work: machine-readable, with a kind, dependencies, expected paths and its own verification commands.</td></tr>
+    <tr><th>Verification</th><td>Running <em>the repository's own</em> commands against an agent's work, in that task's worktree. The gate between “the agent says it is done” and “it is done”.</td></tr>
+    <tr><th>Work item</th><td>A <code>FEAT-###</code>, <code>TASK-###</code> or <code>BUG-###</code> under <code>agile/</code>, with its plan and test documents. The join key between a branch, a commit and the record.</td></tr>
+    <tr><th>Working record</th><td>The <code>agile/</code> directory as a whole — why a change existed, what was verified, and what broke along the way.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Git terms, as Spagitty uses them</h2>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Ahead / behind</th><td>How many commits a branch has that its upstream does not, and vice versa. Counted against the remote-tracking ref <em>on disk</em>, so the numbers are as old as the last fetch — and Spagitty says how old rather than implying they are live.</td></tr>
+    <tr><th>Annotated tag</th><td>A tag that is its own object and can carry a message. A lightweight tag is just a ref. The difference decides whether a message can exist at all, so the two are told apart throughout.</td></tr>
+    <tr><th>Blame</th><td>Which commit last touched each line of a file.</td></tr>
+    <tr><th>Cherry-pick</th><td>Applying one commit's change onto another branch, producing a new commit.</td></tr>
+    <tr><th>Detached HEAD</th><td>HEAD pointing at a commit rather than a branch. Reachable deliberately from the graph, and recoverable through the reflog.</td></tr>
+    <tr><th>Fast-forward</th><td>Moving a branch pointer forward when there is nothing to merge, because the target already contains it.</td></tr>
+    <tr><th>Hunk</th><td>A contiguous block of changed lines in a diff, with its context. Spagitty stages, unstages and discards by hunk as well as by file.</td></tr>
+    <tr><th>Index (the staging area)</th><td>What the next commit will contain. During a conflict it holds all three versions of a file — stage 1 the base, stage 2 ours, stage 3 theirs — which is the whole data model of the Conflicts screen.</td></tr>
+    <tr><th>Lane</th><td>A vertical column in the commit graph. A branch's line of development as drawn, not as named.</td></tr>
+    <tr><th>Ours / theirs</th><td>The two sides of a conflict. Which is which depends on the operation, which is why Spagitty reads the operation in progress from the repository's own state rather than inferring it.</td></tr>
+    <tr><th>Reflog</th><td>Where a ref has been. What answers “what did I just do to this history”, and the way back from almost anything.</td></tr>
+    <tr><th>Rebase (interactive)</th><td>Replaying a run of commits onto a new base, optionally reordering, squashing, rewording or dropping them along the way.</td></tr>
+    <tr><th>Remote-tracking ref</th><td>The local record of where a remote branch was at the last fetch. Not the remote itself.</td></tr>
+    <tr><th>Squash</th><td>Folding a commit into the one above it. Upward, because that is the direction git folds — a plan whose first row is a squash has nothing above it and is refused with that reason.</td></tr>
+    <tr><th>Stash</th><td>A commit whose first parent is the commit the work was made on. <code>refs/stash</code>'s reflog is the list, and <code>stash@{n}</code> is literally the nth entry.</td></tr>
+    <tr><th>Submodule</th><td>A repository checked out inside another at a pinned commit.</td></tr>
+    <tr><th>TREESAME</th><td>Git's own simplification rule for path filters: a commit whose tree matches <em>any</em> parent's for that path is skipped. It is what stops a merge being listed for a change it only carried across.</td></tr>
+    <tr><th>Worktree</th><td>An additional working directory attached to the same repository, on its own branch. What the farm gives every task.</td></tr>
+  </tbody>
+</table>
+</div>

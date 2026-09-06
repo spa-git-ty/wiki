@@ -1,0 +1,187 @@
+<span class="eyebrow">How it is built</span>
+<h1>The Tauri layer</h1>
+
+<p class="lede">
+  <code>src-tauri</code> owns the window, the command surface and the background workers. It is
+  deliberately thin: it holds the open session — one repository at a time — and forwards to the core.
+  No git logic lives here.
+</p>
+
+<h2>The files</h2>
+
+<ul class="modules">
+  <li><span class="m-path">lib.rs</span><span class="m-what">Command registration, and the run sequence. Owns the window and the workers; all git logic is <code>spagitty-core</code>'s.</span></li>
+  <li><span class="m-path">commands.rs</span><span class="m-what">One <code>#[tauri::command]</code> per operation. Holds the open session, forwards to the core, and converts errors to strings for the webview.</span></li>
+  <li><span class="m-path">farm.rs</span><span class="m-what">The farm's Tauri layer — thin in the same way. Holds the open farm, forwards to <code>spagitty-farm</code>, and turns each <code>FarmEvent</code> into one webview event. State of its own, with a different lifetime from the graph session.</span></li>
+  <li><span class="m-path">graph_worker.rs</span><span class="m-what">One thread per open repository, walking history and streaming rows.</span></li>
+  <li><span class="m-path">search_worker.rs</span><span class="m-what">One thread per query. Starting one cancels the one before.</span></li>
+  <li><span class="m-path">clone_worker.rs</span><span class="m-what">One thread per clone, owning the <code>git</code> process — so cancelling is a signal rather than a request.</span></li>
+  <li><span class="m-path">network_worker.rs</span><span class="m-what">Fetch and push, watched while they run. Both were fire-and-wait: <code>--progress</code> was passed to git and nothing read it.</span></li>
+  <li><span class="m-path">rebase_worker.rs</span><span class="m-what">One thread watching git rewrite history, so the session lock is never held while it runs.</span></li>
+  <li><span class="m-path">watch.rs</span><span class="m-what">Filesystem watching over the git directory. Spagitty does not poll — <code>notify</code> tells the UI when something it displays has actually changed.</span></li>
+  <li><span class="m-path">command_log.rs</span><span class="m-what">The adapter between <code>record.rs</code> and the window: one observer registered at startup, forwarding each entry as an event.</span></li>
+  <li><span class="m-path">recents.rs</span><span class="m-what">The repositories the user has opened. Application state, not repository state — a record of what the <em>user</em> did.</span></li>
+  <li><span class="m-path">settings.rs</span><span class="m-what">Spagitty's own preferences, beside the repository list. None of it is a fact about a repository.</span></li>
+  <li><span class="m-path">accounts.rs</span><span class="m-what">Which hosting accounts are connected — a host and a login. The token is in the keychain.</span></li>
+  <li><span class="m-path">profiles.rs</span><span class="m-what">Named identity profiles, and applying one locally or globally.</span></li>
+  <li><span class="m-path">about.rs</span><span class="m-what">Build identity and the dependency licence list — both halves of the GPL-3 obligation the About section exists to meet.</span></li>
+  <li><span class="m-path">platform.rs</span><span class="m-what">Host facts that must be true before the webview builds its first frame. Nothing here is git or Spagitty.</span></li>
+  <li><span class="m-path">testing.rs</span><span class="m-what">Scaffolding for this crate's own tests.</span></li>
+</ul>
+
+<h2>Why the workers are threads</h2>
+
+<p>
+  Each long-running job owns a thread and its own cancellation, and each one is a slightly different
+  shape for a reason its header explains:
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Worker</th><th>What is different about it</th></tr></thead>
+  <tbody>
+    <tr><th>Graph</th><td>One per open repository, long-lived. It walks lazily — the worker does nothing until the store asks for rows.</td></tr>
+    <tr><th>Search</th><td>One per <em>query</em>, not per repository. Starting one cancels the one before, and rows carrying a stale token are dropped rather than rendered — which is what makes searching on a keystroke safe.</td></tr>
+    <tr><th>Clone</th><td>Owns a child process rather than a walk, so cancellation is a signal. Removal of a partial clone happens after the child is reaped, never after the kill signal, or the two race and files reappear behind it.</td></tr>
+    <tr><th>Network</th><td>Exists so a fetch says something while it runs. It reads git's progress rather than waiting for the exit code.</td></tr>
+    <tr><th>Rebase</th><td>Runs without holding the session lock, with progress read from git's own state counters.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Tokens, not cancellation races</h3>
+
+<p>
+  Both streaming workers stamp every batch with the token of the walk that produced it. A superseded
+  walk is discarded by <em>ignoring its rows</em> rather than by successfully cancelling it in time —
+  which is a race the frontend cannot win and does not have to.
+</p>
+
+<h3>The farm's commands are <code>async</code></h3>
+
+<p>
+  Its commands are <code>#[tauri::command(async)]</code> rather than plain, because they take locks
+  that agent threads hold — and a blocking command runs on the thread that paints the window. A farm
+  that planned for thirty seconds froze the window for thirty seconds.
+</p>
+
+<h2 id="platform-facts">Platform facts</h2>
+
+<p>
+  <code>platform.rs</code> arranges the webview's environment as the <em>first statement</em> of
+  <code>run</code> — before the builder, and while the process is still single-threaded, which is the
+  only state in which setting an environment variable is sound.
+</p>
+
+<p>
+  It sets <code>WEBKIT_FORCE_COMPOSITING_MODE=1</code>, which keeps the whole page on the GPU rather
+  than letting WebKitGTK fall back to software for the parts its heuristics misjudge.
+</p>
+
+<p>
+  It deliberately does <strong>not</strong> set <code>WEBKIT_DISABLE_DMABUF_RENDERER</code>, and that
+  is a recorded reversal. It used to be set to <code>1</code> on every Linux start, because WebKitGTK's
+  DMABuf renderer cannot allocate a GBM buffer on some driver and compositor combinations, and a
+  webview with no frame to present is a white window for the whole session. The cost of that
+  workaround was written down and then lived with for too long: with the renderer off, every Linux
+  host repaints <em>through shared memory, on the CPU</em> — including the hosts that never had the
+  bug. On a real window that is a frame that lags the pointer during a resize and a history that
+  scrolls at a fraction of the display's rate.
+</p>
+
+<p>
+  The accelerated path is the default now. A host that hits the GBM bug sets the variable in its own
+  environment, which the process still honours — along with an explicit value for either variable in
+  either direction.
+</p>
+
+<h2>The command surface</h2>
+
+<p>
+  Around 130 commands, grouped by what they are for. The full list, with what each one does, is on the
+  <a href="ipc.html">IPC reference</a>.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Group</th><th>Shape</th></tr></thead>
+  <tbody>
+    <tr><th>The walk</th><td><code>open_repo</code>, <code>close_repo</code>, <code>graph_request</code>, <code>graph_restart</code>, <code>graph_visibility</code>, <code>snapshot</code>, <code>metrics</code></td></tr>
+    <tr><th>Reading</th><td>Commit detail and diffs, the working copy, branches, stashes, blame, file history, conflicts, search</td></tr>
+    <tr><th>Writing</th><td>Stage, commit, checkout, branch and tag operations, reset, revert, cherry-pick, integrate, the rebase lifecycle, stash, fetch, push, pull</td></tr>
+    <tr><th>Application state</th><td>Recent repositories, clone planning and execution, about, licences, identity, profiles, settings, the launch path</td></tr>
+    <tr><th>The forge</th><td>Accounts, pull requests, files, commits, comments, reviews, merge, close, draft state</td></tr>
+    <tr><th>The farm</th><td>Around 35 commands, from <code>farm_open</code> through planning, tasks, running, verification, review and merge, to <code>farm_sweep</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>One special command</h3>
+
+<p>
+  <code>graph_visibility</code> is worth naming: hide, solo, smart visibility and pin-to-left all
+  resolve to a <strong>root set for a fresh walk</strong> rather than to a filter over rows the
+  frontend already has. Filtering client-side would leave the lanes drawing edges between commits that
+  are no longer parent and child.
+</p>
+
+<h2>Events</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Event</th><th>Carries</th></tr></thead>
+  <tbody>
+    <tr><th><code>graph-rows</code></th><td>A batch of commit rows, stamped with its walk's token.</td></tr>
+    <tr><th><code>graph-done</code></th><td>The walk finished.</td></tr>
+    <tr><th><code>search-rows</code> / <code>search-done</code></th><td>The same shape, per query.</td></tr>
+    <tr><th><code>clone-progress</code> / <code>clone-done</code></th><td>Git's own parsed progress, and the outcome.</td></tr>
+    <tr><th><code>network-progress</code> / <code>network-done</code></th><td>Fetch and push while they run.</td></tr>
+    <tr><th><code>rebase-progress</code> / <code>rebase-done</code></th><td>Read from git's state counters, not parsed from output.</td></tr>
+    <tr><th><code>repo-changed</code></th><td>The watcher saw something. Refs moving debounces into a re-read and a re-walk; a worktree change re-reads the counts only.</td></tr>
+    <tr><th><code>git-command</code></th><td>One execution, as <code>shell.rs</code> recorded it.</td></tr>
+    <tr><th><code>farm-event</code></th><td>One <code>FarmEvent</code>, internally tagged — one channel rather than sixteen, because the screen keeps one activity list and one ordering.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Testing a layer that owns a window</h2>
+
+<p>Two things make it possible to test this crate against real repositories, headlessly.</p>
+
+<ul>
+  <li>
+    <strong>Everything is generic over <code>R: tauri::Runtime</code></strong>, so
+    <code>tauri::test::mock_app</code> can supply an <code>AppHandle&lt;MockRuntime&gt;</code> where
+    the real one supplies a Wry handle.
+  </li>
+  <li>
+    <strong><code>spagitty-core</code>'s fixtures are public behind a feature</strong>, which
+    <code>src-tauri</code> enables as a dev-dependency — one fixture builder for the workspace rather
+    than two things building repositories with the <code>git</code> binary. Nothing enables the
+    feature outside tests, so a release build carries neither the fixtures nor <code>tempfile</code>.
+  </li>
+</ul>
+
+<p>
+  <code>testing.rs</code> holds what an event test needs beyond that: a mock application managing the
+  real state, an <code>Emitted&lt;T&gt;</code> collector with <code>at_least(n)</code> and
+  <code>no_more_than(n)</code>, and <code>finishes_promptly</code>, which puts a deadline on a drop —
+  dropping a worker joins its thread, so a worker that ignored its shutdown would hang the test runner
+  rather than fail it.
+</p>
+
+<p>
+  It also points <code>HOME</code> and the platform's other configuration variables at a temporary
+  directory, once for the whole test binary: <code>open_repo</code> writes to the recent-repositories
+  list, and a test run must not add rows to the list of repositories you have opened.
+</p>
+
+<h2>The window</h2>
+
+<p>
+  Created undecorated and transparent at 1280×800, with a content security policy that allows
+  <code>self</code>, data URIs and Tauri's asset protocol and nothing else. Everything a person reads
+  as “the window” is drawn by the application — see
+  <a href="screens.html#the-window-itself">the window itself</a> and
+  <a href="themes.html#the-glass">the glass</a>.
+</p>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Agent Farm · Spagitty Wiki</title>
+<meta name="description" content="A goal, the tasks it was cut into, and the coding agents on your machine working them in parallel — one branch and one worktree each, verified and peer-reviewed before anything merges.">
+<meta name="keywords" content="agent farm, claude code, codex, cursor, parallel agents, git worktree, autonomy levels">
+<meta name="author" content="The Spagitty Authors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://spa-git-ty.github.io/wiki/farm.html">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" href="assets/brand/mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/brand/favicon-64.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Spagitty Wiki">
+<meta property="og:title" content="The Agent Farm · Spagitty Wiki">
+<meta property="og:description" content="A goal, the tasks it was cut into, and the coding agents on your machine working them in parallel — one branch and one worktree each, verified and peer-reviewed before anything merges.">
+<meta property="og:url" content="https://spa-git-ty.github.io/wiki/farm.html">
+<meta property="og:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta property="og:image:alt" content="Spagitty — untangle the work, yours and your agents'">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Agent Farm · Spagitty Wiki">
+<meta name="twitter:description" content="A goal, the tasks it was cut into, and the coding agents on your machine working them in parallel — one branch and one worktree each, verified and peer-reviewed before anything merges.">
+<meta name="twitter:image" content="https://spa-git-ty.github.io/wiki/assets/brand/hero.png">
+<meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="stylesheet" href="assets/wiki.css">
+<script>
+  // Applied before first paint so a chosen theme never flashes the other one.
+  try {
+    var t = localStorage.getItem('spagitty-wiki-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+      document.documentElement.dataset.theme = 'light';
+  } catch (e) {}
+</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "TechArticle", "headline": "The Agent Farm", "description": "A goal, the tasks it was cut into, and the coding agents on your machine working them in parallel \u2014 one branch and one worktree each, verified and peer-reviewed before anything merges.", "url": "https://spa-git-ty.github.io/wiki/farm.html", "inLanguage": "en", "dateModified": "2026-09-06", "isPartOf": {"@type": "WebSite", "name": "Spagitty Wiki", "url": "https://spa-git-ty.github.io/wiki"}, "author": {"@type": "Organization", "name": "The Spagitty Authors"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Wiki", "item": "https://spa-git-ty.github.io/wiki"}, {"@type": "ListItem", "position": 2, "name": "The agent farm", "item": "https://spa-git-ty.github.io/wiki/farm.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false"></button>
+  <a class="brand" href="index.html">
+    <img src="assets/brand/mark.svg" width="26" height="26" alt="">
+    <span class="brand-word">spagitty</span>
+    <span class="brand-tag">wiki</span>
+  </a>
+  <div class="search" role="search">
+    <input id="search-input" type="search" placeholder="Search the wiki…" autocomplete="off"
+           aria-label="Search the wiki" aria-controls="search-results" aria-expanded="false">
+    <kbd class="search-key">/</kbd>
+    <div id="search-results" class="search-results" role="listbox" hidden></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="theme-toggle" aria-label="Switch between light and dark"></button>
+    <a class="ghlink" href="https://github.com/spa-git-ty/spagitty" rel="noopener">GitHub</a>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+<nav class="sidebar-nav" aria-label="Wiki sections">
+<p class="nav-section">Start here</p>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="overview.html">What Spagitty is</a></li>
+<li><a href="install.html">Install &amp; first run</a></li>
+<li><a href="features.html">Feature reference</a></li>
+</ul>
+<p class="nav-section">Using Spagitty</p>
+<ul>
+<li class="here"><a href="farm.html" aria-current="page">The agent farm</a></li>
+<li><a href="screens.html">Screens 1A–1Q</a></li>
+<li><a href="themes.html">Themes &amp; appearance</a></li>
+<li><a href="privacy.html">Privacy &amp; security</a></li>
+</ul>
+<p class="nav-section">How it is built</p>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="code-map.html">Code map</a></li>
+<li><a href="core-crate.html">spagitty-core (git)</a></li>
+<li><a href="farm-crate.html">spagitty-farm (agents)</a></li>
+<li><a href="tauri-layer.html">The Tauri layer</a></li>
+<li><a href="frontend.html">The frontend</a></li>
+<li><a href="ipc.html">IPC reference</a></li>
+</ul>
+<p class="nav-section">How we work</p>
+<ul>
+<li><a href="testing.html">Testing</a></li>
+<li><a href="ci.html">CI/CD &amp; releases</a></li>
+<li><a href="process.html">How we work</a></li>
+<li><a href="branding.html">Brand &amp; identity</a></li>
+<li><a href="contributing.html">Contributing</a></li>
+<li><a href="releases.html">Release history</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+<li><a href="faq.html">FAQ</a></li>
+</ul>
+</nav>
+    <div class="sidebar-foot">
+      <a href="https://github.com/spa-git-ty/spagitty/releases/latest" rel="noopener">Download Spagitty</a>
+      <a href="https://github.com/spa-git-ty/spagitty" rel="noopener">Source repository</a>
+      <a href="https://github.com/spa-git-ty/wiki" rel="noopener">Edit this wiki</a>
+    </div>
+  </aside>
+
+  <main id="main" class="content">
+<aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ul><li><a href="#agents-not-models">Agents, not models</a></li>
+<li><a href="#the-loop">The loop</a></li>
+<li><a href="#where-you-stand">Where you stand</a></li>
+<li><a href="#a-task">A task</a></li>
+<li><a href="#a-branch-and-a-worktree-per-task">A branch and a worktree per task</a></li>
+<li><a href="#verification-the-gate">Verification: the gate</a></li>
+<li><a href="#review-a-second-agent">Review: a second agent</a></li>
+<li><a href="#the-repositorys-own-rules">The repository&#x27;s own rules</a></li>
+<li><a href="#scheduling">Scheduling</a></li>
+<li><a href="#watching-it">Watching it</a></li>
+<li><a href="#it-survives-a-crash">It survives a crash</a></li>
+<li><a href="#the-starter-page">The starter page</a></li>
+<li><a href="#where-the-code-is">Where the code is</a></li></ul></aside>
+    <article class="prose">
+<span class="eyebrow">Using Spagitty</span>
+<h1>The agent farm</h1>
+
+<p class="lede">
+  Set a goal. Cut it into tasks. Watch several agents work them at once, on branches you can read in
+  the graph you already trust. The farm is Spagitty's own subject — everything else in the
+  application is where its output is read.
+</p>
+
+<div class="rule">
+  <span class="note-label">Three rules the whole feature is built around</span>
+  <p>
+    <strong>An agent saying “done” is not done.</strong> There is no transition from an agent's own
+    report to <code>Done</code>: verification and a review by a <em>different</em> agent are in the
+    path and cannot be skipped.<br>
+    <strong>Agents never talk to each other.</strong> Every handoff goes through Spagitty, so there
+    is one audit trail and one place that decides what happens next.<br>
+    <strong>Nothing an agent does reaches your checkout.</strong> Every task runs in its own worktree
+    on its own branch.
+  </p>
+</div>
+
+<h2 id="agents-not-models">Agents, not models<a class="anchor" href="#agents-not-models" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Spagitty runs agents; it does not contain them. There is no model here and no key. Claude Code,
+  Codex, Cursor and Oh My Pi are detected on your <code>PATH</code>, and anything else with a command
+  line can be added by hand. They run as you, with your credentials, on your machine.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Provider</th><th>How it is invoked</th><th>Why that form</th></tr></thead>
+  <tbody>
+    <tr><th>Claude Code</th><td><code>claude -p &lt;prompt&gt;</code></td><td>Print mode runs the whole turn to completion with no terminal attached and writes the transcript to standard output.</td></tr>
+    <tr><th>Codex</th><td><code>codex exec &lt;prompt&gt;</code></td><td><code>exec</code> is the non-interactive subcommand: it runs the turn and exits. Bare <code>codex</code> would open a session.</td></tr>
+    <tr><th>Cursor</th><td><code>cursor-agent</code></td><td>Not <code>cursor</code> — that is the editor, and running it here would open a window instead of doing the work.</td></tr>
+    <tr><th>Oh My Pi</th><td>Prompt on standard input</td><td>Its command line does not take a prompt argument in the shape the others do.</td></tr>
+    <tr><th>Anything else</th><td>A command you configure</td><td>A custom adapter, so a new provider is a settings change rather than a release.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Detection walks <code>PATH</code> itself rather than shelling out to <code>which</code>, and the
+  registry keeps two things apart on purpose: what this machine <em>has</em>, and what you have
+  <em>said</em> about it — the role you want an agent to play, whether it is enabled, and any
+  argument overrides.
+</p>
+
+<h2 id="the-loop">The loop<a class="anchor" href="#the-loop" aria-label="Link to this section">#</a></h2>
+
+<ol>
+  <li><strong>A goal.</strong> One sentence, plus any constraints you want honoured. It lives longer than a single run.</li>
+  <li><strong>A plan.</strong> An agent turns the goal into tasks. They arrive as <em>drafts</em>, so a person reads a decomposition before several agents act on it. A band above the list says how many were proposed, with a checkbox each: add them all, add the ones you want, or discard.</li>
+  <li><strong>Assignment.</strong> The router maps a task's kind to a preferred role, the registry finds an agent for that role, and if nobody holds it the task goes to whoever can code.</li>
+  <li><strong>Work.</strong> The task gets a branch and a worktree of its own; the agent runs there, and what it says is narrated into lines a person can watch.</li>
+  <li><strong>Verification.</strong> Your repository's own commands, run in that worktree, stopping at the first failure.</li>
+  <li><strong>Review.</strong> A second agent — never the one that wrote the change — reads it and returns a decision.</li>
+  <li><strong>Merge.</strong> Depending on where you have put the autonomy dial, either you merge it or the farm does.</li>
+</ol>
+
+<h2 id="where-you-stand">Where you stand<a class="anchor" href="#where-you-stand" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Five autonomy levels. The setting is a sentence about where <em>you</em> are, not a slider labelled
+  “risk”.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Level</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><th>Manual</th><td>Spagitty organises the tasks. Nothing runs by itself.</td></tr>
+    <tr><th>Assisted</th><td>Agents run; you approve every task. This is the default.</td></tr>
+    <tr><th>Semi-automatic</th><td>Agents run and review each other; you approve the merges.</td></tr>
+    <tr><th>Automatic</th><td>Verified low-risk tasks may merge themselves.</td></tr>
+    <tr><th>Unattended</th><td>Everything, without you.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  <span class="note-label">Even at the top of the dial</span>
+  <p>
+    An automatic merge still requires passing checks, a successful independent review of the work
+    actually committed, and merge permission. Competing farm merges serialise rather than racing, and
+    a task keeps its intended destination.
+  </p>
+</div>
+
+<h2 id="a-task">A task<a class="anchor" href="#a-task" aria-label="Link to this section">#</a></h2>
+
+<p>
+  A task is machine-readable on purpose: the farm never relies entirely on free-form prose. It
+  carries a kind, its dependencies, the files it expects to touch, its own verification commands, and
+  the record of every run against it.
+</p>
+
+<h3 id="kinds">Kinds<a class="anchor" href="#kinds" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <code>Architecture</code>, <code>Backend</code>, <code>Frontend</code>, <code>Testing</code>,
+  <code>Documentation</code>, <code>Research</code>, <code>Review</code>, <code>Integration</code>,
+  <code>General</code>. The kind is what routes the task to a role — architect, backend, frontend,
+  tester, reviewer, researcher, or general.
+</p>
+
+<h3 id="statuses">Statuses<a class="anchor" href="#statuses" aria-label="Link to this section">#</a></h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Status</th><th>Means</th></tr></thead>
+  <tbody>
+    <tr><th>Draft</th><td>Written, but not yet part of the plan the farm will execute.</td></tr>
+    <tr><th>Ready</th><td>In the plan. Dependencies unsatisfied, or no agent free.</td></tr>
+    <tr><th>Assigned</th><td>An agent has it; the run has not started.</td></tr>
+    <tr><th>Running</th><td>An agent is working.</td></tr>
+    <tr><th>Waiting</th><td>Finished its run and is waiting on something outside itself — a dependency, a lease, a person.</td></tr>
+    <tr><th>Blocked</th><td>Cannot proceed and needs a person or a new task. Distinct from <em>Failed</em>: nothing went wrong, something is missing.</td></tr>
+    <tr><th>Review</th><td>With a second agent.</td></tr>
+    <tr><th>Verification</th><td>Running the repository's checks.</td></tr>
+    <tr><th>Done</th><td>Verified, reviewed and finished.</td></tr>
+    <tr><th>Failed</th><td>Something went wrong. Retryable, up to the farm's attempt limit.</td></tr>
+    <tr><th>Cancelled</th><td>Stopped on purpose.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="who-asked-for-it">Who asked for it<a class="anchor" href="#who-asked-for-it" aria-label="Link to this section">#</a></h3>
+
+<p>
+  A farm mixes work you decided on with work a model produced, and after twenty tasks they look
+  identical. Your own tasks stay unmarked; anything an agent asked for carries one quiet mark, and
+  its panel says which agent and why — cut out of the goal, cut out of another task, or proposed
+  while working on something else and asked for by nobody.
+</p>
+
+<h3 id="tasks-that-turn-out-to-be-too-big">Tasks that turn out to be too big<a class="anchor" href="#tasks-that-turn-out-to-be-too-big" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <strong>Break it down</strong> asks an agent to cut one task into smaller ones. They arrive as a
+  proposed plan under it, and the task becomes a heading that finishes when they do. Deleting the
+  heading keeps the work that was under it.
+</p>
+
+<h2 id="a-branch-and-a-worktree-per-task">A branch and a worktree per task<a class="anchor" href="#a-branch-and-a-worktree-per-task" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Named <code>spagitty-farm/&lt;task&gt;/&lt;provider&gt;</code> — for example
+  <code>spagitty-farm/TASK-0042/claude</code>. The name is <em>derived</em>, never chosen, and
+  derived in exactly one place, because it is how the commit graph, the worktree list and the Farm
+  screen find each other. A glob over that prefix cleans up a whole farm without touching anything
+  you named yourself.
+</p>
+
+<p>
+  Two agents in two worktrees cannot corrupt each other's files — that is what the worktrees are
+  for. What they <em>can</em> do is both edit the same path and produce two changes that conflict on
+  the way back, so the workspace layer holds <strong>path-level leases</strong>: a task declares the
+  files it expects to touch, and the scheduler will not start a second task that wants a path
+  already leased.
+</p>
+
+<p>
+  Deleting a task keeps the commits on its branch. Nothing an agent does reaches your working copy.
+</p>
+
+<h2 id="verification-the-gate">Verification: the gate<a class="anchor" href="#verification-the-gate" aria-label="Link to this section">#</a></h2>
+
+<p>
+  This is what makes the difference between a farm and four terminal windows. No agent's own report
+  can move a task to <code>Done</code> without passing through here.
+</p>
+
+<ul>
+  <li>Commands are <strong>yours</strong> — the repository's own checks, configured on the farm, run in the task's worktree.</li>
+  <li>A task's own list is <em>added</em> to the farm's, because the common case is “the usual checks, plus this one”. A task can also replace them entirely, for a subdirectory with its own toolchain.</li>
+  <li>Commands run in order and stop at the first failure. The cheap ones come first by convention, and running a twenty-minute suite after the type check already failed spends time to learn nothing. The ones that did not run show as <em>pending</em>, never as passed.</li>
+  <li>Output is drained continuously with bounded retention, so a noisy check cannot exhaust memory. Stopping a check or reaching its deadline terminates its whole process tree.</li>
+  <li>There is <strong>no shell</strong> in the path: a command is argv, not a string handed to <code>sh</code>.</li>
+  <li>Evidence is trusted only for a committed, clean task worktree — a passing run against uncommitted work proves nothing about what would merge.</li>
+</ul>
+
+<div class="warn">
+  <span class="note-label">Nothing configured is not a pass</span>
+  <p>
+    A task that reaches review with nothing configured to check it says so, in those words. It does
+    not read as verified.
+  </p>
+</div>
+
+<h2 id="review-a-second-agent">Review: a second agent<a class="anchor" href="#review-a-second-agent" aria-label="Link to this section">#</a></h2>
+
+<p>
+  One rule, and it is not negotiable: <strong>the agent that implemented a task may not be the one
+  that approves it.</strong> A model asked to review its own work agrees with itself. The reviewer's
+  decision is parsed out of its transcript into a structure, for the same reason a handoff is — a
+  review that has to be read by a person before anything can happen is a review that has not
+  automated anything.
+</p>
+
+<h2 id="the-repositorys-own-rules">The repository's own rules<a class="anchor" href="#the-repositorys-own-rules" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Spagitty reads the repository's policy file and attaches it to every prompt. A farm without this
+  produces agents that write in a house style nobody uses, add dependencies the project has refused,
+  and reformat files as they pass. The fix is not a longer prompt; it is the repository saying what
+  it wants, once, in a file that is committed and reviewed like everything else.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>File</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><th><code>AGENTS.md</code></th><td>Authoritative. Wins wherever the files disagree.</td></tr>
+    <tr><th><code>CLAUDE.md</code></th><td>Read and appended under a heading naming its source.</td></tr>
+    <tr><th><code>.cursor/rules</code></th><td>Same.</td></tr>
+    <tr><th><code>.github/copilot-instructions.md</code></th><td>Same.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  They are concatenated under headings that name where each came from, and the agent is told which
+  one governs. They are not merged cleverly — a merge that silently dropped a rule would be worse
+  than a prompt containing two. Sixty-four kilobytes is the cap: a rules file longer than that is a
+  manual, and pasting a manual into every prompt is how a farm spends its budget on context rather
+  than on work. If your repository has none, Spagitty will write you a starter one.
+</p>
+
+<h2 id="scheduling">Scheduling<a class="anchor" href="#scheduling" aria-label="Link to this section">#</a></h2>
+
+<p>
+  Tasks form a directed acyclic graph, and the scheduler runs whatever has no unfinished ancestors.
+  That single rule is the whole of parallel execution. Up to eight agents work at once; a plan may
+  hold twenty-four tasks; how many attempts a task gets before it needs a person is a setting rather
+  than a constant.
+</p>
+
+<p>
+  The scheduler is a <strong>pure function</strong> — farm plus leases in, a list of decisions out.
+  It starts nothing, spawns nothing and writes nothing, which is why the interesting behaviour is
+  tested as a table rather than by running agents.
+</p>
+
+<h3 id="a-queued-task-says-why-it-is-not-running">A queued task says why it is not running<a class="anchor" href="#a-queued-task-says-why-it-is-not-running" aria-label="Link to this section">#</a></h3>
+
+<p>
+  Not “Pending”. The row carries the scheduler's own answer: which task is holding the same files,
+  how many agents are working against the limit, that nothing installed can do this kind of work, or
+  that the farm is not running. A task's own note — a verification failure, a reviewer's words —
+  still comes first.
+</p>
+
+<h2 id="watching-it">Watching it<a class="anchor" href="#watching-it" aria-label="Link to this section">#</a></h2>
+
+<figure>
+  <img src="assets/screens/1P-badges.png" width="1600" height="1000" loading="lazy"
+       alt="The Spagitty badges screen, showing earned badges grouped by category and a table of agent standings.">
+  <figcaption>
+    <span class="screen-code">1P</span>Standings are per repository and ordered by first-pass rate.
+    A task the farm takes all the way to Done scores the agent that did it — including whether
+    anything actually checked the work.
+  </figcaption>
+</figure>
+
+<h3 id="the-header-is-a-ring">The header is a ring<a class="anchor" href="#the-header-is-a-ring" aria-label="Link to this section">#</a></h3>
+
+<p>
+  What is finished fills it, what is running is a brighter arc at its leading edge, and anything
+  blocked colours the remainder — so an unfinished farm and a stuck one do not look the same at the
+  same count. Above the plan, one chip per working agent names what it is on and for how long; the
+  strip is absent when nothing runs.
+</p>
+
+<h3 id="the-drawer-has-two-tabs">The drawer has two tabs<a class="anchor" href="#the-drawer-has-two-tabs" aria-label="Link to this section">#</a></h3>
+
+<p>
+  <strong>Activity</strong> is what the farm did — tasks created, statuses moved, verifications run,
+  merges landed — timestamped, filterable to one task, and as long as the history.
+  <strong>Transcript</strong> is what one agent said, which is thousands of lines and belongs to one
+  task at a time. Keeping them in one list would drown the record in the narration. The drawer drags
+  to the height you want and collapses to its own tab bar.
+</p>
+
+<p>
+  Two controls, and they are not the same thing. <strong>Following</strong> is where the scrollbar
+  is: the pane sticks to the newest line while you are at the bottom and lets go the moment you
+  scroll up. <strong>Hold</strong> is a decision — it freezes the list so a line can be read while it
+  is still arriving, and counts what arrived while it was held, so holding is never losing.
+</p>
+
+<h3 id="a-quiet-run-says-so-and-is-never-stopped-for-you">A quiet run says so, and is never stopped for you<a class="anchor" href="#a-quiet-run-says-so-and-is-never-stopped-for-you" aria-label="Link to this section">#</a></h3>
+
+<p>
+  After six minutes without a word, the chip and the row say how long it has been silent and the
+  pulse stops. A model may think for a long time; killing it throws the work away, so the farm flags
+  and leaves the decision where it belongs.
+</p>
+
+<h3 id="nothing-polls">Nothing polls<a class="anchor" href="#nothing-polls" aria-label="Link to this section">#</a></h3>
+
+<p>
+  A farm changes when an agent says something, which is at a model's pace and on no schedule. The
+  backend emits, the store applies, and the screen is a function of the store. A snapshot is
+  refetched shortly after a burst so nothing drifts if an event was missed.
+</p>
+
+<h2 id="it-survives-a-crash">It survives a crash<a class="anchor" href="#it-survives-a-crash" aria-label="Link to this section">#</a></h2>
+
+<p>
+  The farm is JSON under <code>.spagitty/</code> inside the repository — excluded from git through
+  <code>.git/info/exclude</code>, never committed, and deleted when the repository is.
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>File</th><th>Holds</th></tr></thead>
+  <tbody>
+    <tr><th><code>farm.json</code></th><td>The farm and its tasks, rewritten after every state change and written by rename, so a crash mid-write leaves the previous state intact rather than a truncated file.</td></tr>
+    <tr><th><code>events.jsonl</code></th><td>The event log, one JSON object per line — a format a crash mid-append cannot corrupt, because the partial last line is simply dropped on read. Trimmed to two thousand entries on write.</td></tr>
+    <tr><th><code>agents.json</code></th><td>The per-repository agent registry: roles, enablement, argument overrides.</td></tr>
+    <tr><th>Transcripts</th><td>On disk, per run, so the drawer can read a task's whole log back rather than holding it in memory.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  On startup the service reconciles what is on disk against the worktrees that actually exist. JSON
+  rather than SQLite is a deliberate choice with its reasoning written down — see
+  <a href="farm-crate.html#persistence">persistence</a> in the crate reference.
+</p>
+
+<h2 id="the-starter-page">The starter page<a class="anchor" href="#the-starter-page" aria-label="Link to this section">#</a></h2>
+
+<p>
+  A farm's first screen answers three questions in the order they are asked: what a farm is, how to
+  start one, and whether this machine can run one. The goal field is on it, so starting a farm needs
+  one sentence and no navigation. Three readiness rows say whether an agent was found, whether the
+  repository has an <code>AGENTS.md</code>, and whether anything verifies the work — and none of them
+  blocks starting, because a farm with no agent is still a plan.
+</p>
+
+<h2 id="where-the-code-is">Where the code is<a class="anchor" href="#where-the-code-is" aria-label="Link to this section">#</a></h2>
+
+<p>
+  The control plane is <code>crates/spagitty-farm</code>: model, adapters, workspaces, execution,
+  verification, review, orchestrator, persistence. It calls <code>spagitty-core</code> for every git
+  operation rather than reimplementing one, and it holds no Tauri types. Module by module:
+  <a href="farm-crate.html">spagitty-farm</a>. The screen is
+  <a href="screens.html#1q-farm">1Q</a>, and the commands that reach the crate are on the
+  <a href="ipc.html#the-farm">IPC reference</a>.
+</p>
+
+    </article>
+<nav class="pager" aria-label="Page navigation">
+<a class="pager-link prev" href="features.html"><span class="pager-dir">Previous</span><span class="pager-title">Feature reference</span></a>
+<a class="pager-link next" href="screens.html"><span class="pager-dir">Next</span><span class="pager-title">Screens 1A–1Q</span></a>
+</nav>
+    <footer class="page-foot">
+      <p>Spagitty is free software under the
+        <a href="https://github.com/spa-git-ty/spagitty/blob/main/LICENSE" rel="noopener">GNU General Public License v3.0 or later</a>.
+        Spagitty is not affiliated with the Git project; Git and the Git logo are trademarks of
+        Software Freedom Conservancy.</p>
+      <p class="built">Wiki built 2026-09-06 · <a href="https://github.com/spa-git-ty/wiki" rel="noopener">spa-git-ty/wiki</a></p>
+    </footer>
+  </main>
+</div>
+
+<div class="scrim" hidden></div>
+<script src="assets/wiki.js" defer></script>
+</body>
+</html>
